@@ -10,6 +10,8 @@ const {
 const gulpTsLint = require("gulp-tslint");
 const gulpTypescript = require("gulp-typescript");
 
+const merge = require("merge2");
+
 const typescript = require("typescript");
 const tslint = require("tslint");
 
@@ -43,33 +45,37 @@ const options = {
     paths: {
         get srcRoot() {
             "use strict";
-            return "./src/";
+            return "./";
         },
         get tsSources() {
             "use strict";
-            return ["/**/*.ts"].map(path => {
+            return ["index.ts", "lib/**/*.ts"].map(path => {
                 return normalize(this.srcRoot + path)
             });
         },
-        get es5Dist() {
+        get scriptsDist() {
             "use strict";
-            return "./bin";
-        },
-        get es6Dist() {
-            "use strict";
-            return "./bin6";
+            return ".";
         },
         get testSources() {
             "use strict";
-            return ["/**/*.spec.js"].map(path => {
-                return normalize(this.es5Dist + path)
+            return ["/**/*.test.js"].map(path => {
+                return normalize(this.scriptsDist + path)
             });
         },
         get dists() {
             "use strict";
             return [
-                this.es5Dist,
-                this.es6Dist
+                this.scriptsDist
+            ];
+        },
+        get results() {
+            "use strict";
+            const es5 = this.tsSources.map(scriptName => scriptName.replace(/\.ts/, ".js"));
+            const es6 = this.tsSources.map(scriptName => scriptName.replace(/\.ts/, ".mjs"));
+            return [
+                ...es5,
+                ...es6
             ];
         }
     },
@@ -91,7 +97,7 @@ const options = {
 
 const es6TsConfig = {
     ...tsConfig.compilerOptions,
-    target: "es6",
+    target: "es2016",
     module: "es6",
     typescript: typescript
 };
@@ -121,12 +127,12 @@ gulp.task("lint", () => {
         base: options.paths.srcRoot
     })
         .pipe(gulpPlumber())
-        /*.pipe(gulpTsLint({
+        .pipe(gulpTsLint({
             configuration: "./tslint.json"
         }))
         .pipe(gulpTsLint.report({
             summarizeFailureOutput: true
-        }))*/
+        }))
         .pipe(gulpPlumber.stop());
 });
 
@@ -134,35 +140,40 @@ gulp.task("build", ["build-es5", "build-es6"]);
 
 gulp.task("build-es5", ["lint"], () => {
     "use strict";
-    return gulp.src(options.paths.tsSources, {
+    const ts = gulp.src(options.paths.tsSources, {
         base: options.paths.srcRoot
     })
         .pipe(gulpPlumber())
         .pipe(initSourceMaps())
-        .pipe(gulpTypescript(es5TsConfig))
+        .pipe(gulpTypescript(es5TsConfig));
+    const js = ts.js
+        .pipe(gulpPlumber())
         .pipe(gulpRename(options.rename.es5Scripts))
         .pipe(writeSourceMaps())
         .pipe(gulpPlumber.stop())
-        .pipe(gulp.dest(options.paths.es5Dist));
+        .pipe(gulp.dest(options.paths.scriptsDist));
+    return merge([js]);
 });
 
 gulp.task("build-es6", ["lint"], () => {
     "use strict";
-    return gulp.src(options.paths.tsSources, {
+    const ts = gulp.src(options.paths.tsSources, {
         base: options.paths.srcRoot
     })
         .pipe(gulpPlumber())
         .pipe(initSourceMaps())
-        .pipe(gulpTypescript(es6TsConfig))
+        .pipe(gulpTypescript(es6TsConfig));
+    const js = ts.js
         .pipe(gulpRename(options.rename.es6Scripts))
         .pipe(writeSourceMaps())
         .pipe(gulpPlumber.stop())
-        .pipe(gulp.dest(options.paths.es6Dist));
+        .pipe(gulp.dest(options.paths.scriptsDist));
+    return merge([js]);
 });
 
 gulp.task("clean", () => {
     "use strict";
-    return gulp.src(options.paths.dists, {
+    return gulp.src(options.paths.results, {
         read: false
     })
         .pipe(gulpClean());

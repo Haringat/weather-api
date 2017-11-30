@@ -15,6 +15,6 @@ test("adds a new station", async (t) => {
         .then((data) => t.pass(), t.fail);
 });
 
-test.afterEach(async (t) => {
+test.afterEach.always(async (t) => {
     await t.context.app.debootstrap();
 });

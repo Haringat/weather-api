@@ -17,6 +17,10 @@ export default class {
 
     }
 
+    public async setupSwagger() {
+        return;
+    }
+
     public async bootstrap(host: string, port: number) {
 
         return new Promise((resolve) => {

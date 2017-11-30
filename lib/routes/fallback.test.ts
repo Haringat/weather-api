@@ -51,6 +51,6 @@ test("catches all methods for non-existing endpoints", (t) => {
     }));
 });
 
-test.afterEach(async (t) => {
+test.afterEach.always(async (t) => {
     await t.context.app.debootstrap();
 });
