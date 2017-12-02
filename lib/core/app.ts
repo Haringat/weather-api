@@ -5,6 +5,7 @@ import {
     Server
 } from "http";
 import * as swagger from "swagger-node-express";
+import models from "../models";
 import {
     consumerRoutes,
     supplierRoutes
@@ -125,10 +126,12 @@ export default class Application {
         if (this.enableConsumerDocs) {
             this.consumerSwagger.configureSwaggerPaths("", "/docs", "");
             this.consumerSwagger.configure(`http://${this.host}:${this.port}`, "1");
+            this.consumerSwagger.addModels(models);
         }
         if (this.enableSupplierDocs) {
             this.supplierSwagger.configureSwaggerPaths("", "/docs", "");
             this.supplierSwagger.configure(`http://${this.host}:${this.port}`, "1");
+            this.supplierSwagger.addModels(models);
         }
         await consumerRoutes.forEachAsync(async (route) => {
             await this.addConsumerRoute(route);
