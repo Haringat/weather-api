@@ -11,7 +11,7 @@ export default {
         nickname : "addStations",
         notes : "Returns a pet based on ID",
         parameters : [],
-        path : "/supplier/stations/",
+        path : "/stations/",
         summary : "adds a stations",
         type : "Station"
     },

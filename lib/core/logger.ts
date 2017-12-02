@@ -1,14 +1,9 @@
 import * as scribeJs from "scribe-js";
-import { Console2Static } from "scribe-js/lib/console2";
-import { logger } from "scribe-js/lib/expressLogger";
+import * as expressLogger from "scribe-js/lib/expressLogger";
 
-/*const scribe = scribeJs({
-    createDefaultConsole: true,
-    rootPath: "./logs"
-});
-
-const Console2 = scribe.Console2;
-const logger = scribe.express.logger;*/
+const {
+    logger
+} = expressLogger;
 
 const {
    Console2

@@ -2,6 +2,9 @@ import test from "ava";
 import * as superTest from "supertest";
 import App from "../../../core/app";
 import parseConfigFile from "../../../core/configuration/Configuration";
+import {
+    IConfiguration
+} from "../../../core/configuration/defaults";
 
 test.beforeEach(async (t) => {
     const config = parseConfigFile(Buffer.from(JSON.stringify({
@@ -14,7 +17,7 @@ test.beforeEach(async (t) => {
             host: "127.0.0.1",
             port: 0
         }
-    });
+    }) as IConfiguration;
     t.context.app = new App(config);
     await t.context.app.setup();
     await t.context.app.bootstrap();

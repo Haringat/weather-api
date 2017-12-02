@@ -46,7 +46,7 @@ test("parses multi-level configuration", async (t) => {
 });
 
 test("parses arrays in configuration", async (t) => {
-    t.plan(8);
+    t.plan(6);
     const config = parseConfig(Buffer.from(JSON.stringify({
         a: [
             1,
@@ -78,12 +78,10 @@ test("parses arrays in configuration", async (t) => {
         ],
         foo: "fail"
     });
-    t.is(config["a[0]"], 1);
-    t.not(config["a.0"], 1, "array index formatted like string indices");
-    t.is(config["a[1]"], 2);
-    t.not(config["a.1"], 2, "array index formatted like string indices");
-    t.is(config["b[0][0]"], "foo");
-    t.is(config["b[0][1]"], true);
-    t.is(config["b[0].bar"], false);
+    t.is(config["a.0"], 1);
+    t.is(config["a.1"], 2);
+    t.is(config["b.0.0"], "foo");
+    t.is(config["b.0.1"], true);
+    t.is(config["b.1.bar"], false);
     t.is(config.foo, true);
 });

@@ -1,17 +1,24 @@
 import "async-tools";
 import * as express from "express";
+import * as http from "http";
 import {
-    createServer,
     Server
 } from "http";
 import * as swagger from "swagger-node-express";
-import routes from "../routes";
+import {
+    consumerRoutes,
+    supplierRoutes
+} from "../routes";
 import {
     IConfiguration
-} from "./configuration/Configuration";
+} from "./configuration/defaults";
 import console, {
     expressMiddleWare
 } from "./logger";
+
+const {
+    createServer
+} = http;
 
 enum ApplicationState {
     UNCONFIGURED,
@@ -24,38 +31,65 @@ enum ApplicationState {
 export default class Application {
 
     public app = express();
-    // TODO: use config
-    private host = "127.0.0.1";
-    // TODO: use config
-    private port = 80;
+
+    private consumerAPI = express();
+    private consumerSwagger;
+    private enableConsumerDocs: boolean;
+    private enableSupplierDocs: boolean;
+    private host: string;
+    private port: number;
     private server: Server;
-    private swaggerApp = express();
     private state: ApplicationState = ApplicationState.UNCONFIGURED;
+    private supplierAPI = express();
+    private supplierSwagger;
 
     constructor(config: IConfiguration) {
 
-        this.host = config["router.host"] as string;
-        this.port = config["router.port"] as number;
+        this.host = config["router.host"];
+        this.port = config["router.port"];
+        this.enableConsumerDocs = config["router.swagger.enableConsumerDocumentation"];
+        this.enableSupplierDocs = config["router.swagger.enableSupplierDocumentation"];
 
         this.server = createServer(this.app);
 
         this.app.use(expressMiddleWare);
 
-        this.app.use("/v1", this.swaggerApp);
+        if (this.enableConsumerDocs) {
+            this.consumerSwagger = swagger.createNew(this.consumerAPI);
+        }
+        if (this.enableSupplierDocs) {
+            this.supplierSwagger = swagger.createNew(this.supplierAPI);
+        }
+
+        this.app.use("/v1/consumer", this.consumerAPI);
+        this.app.use("/v1/supplier", this.supplierAPI);
     }
 
     public async setup() {
         await this.setupSwagger();
     }
 
-    public async addRoute(route) {
-        swagger.addHandlers(route.spec.method, [route]);
+    // noinspection JSMethodCanBeStatic
+    public async addSupplierRoute(route) {
+        if (this.enableSupplierDocs) {
+            this.supplierSwagger.addHandlers(route.spec.method, [route]);
+        } else {
+            this.supplierAPI.use(route.spec.path, route.action);
+        }
+    }
+
+    public async addConsumerRoute(route) {
+        if (this.enableConsumerDocs) {
+            this.consumerSwagger.addHandlers(route.spec.method, [route]);
+        } else {
+            this.consumerAPI.use(route.spec.path, route.action);
+        }
     }
 
     public async bootstrap() {
 
         if (this.state !== ApplicationState.OFFLINE) {
-            console.warning(`tried bootstrap app from state ${ApplicationState[this.state]}`);
+            console.warning(`tried to bootstrap app from state ${ApplicationState[this.state]}`);
             return;
         }
 
@@ -88,11 +122,19 @@ export default class Application {
             console.warning("tried to reconfigure application server.");
             return;
         }
-        swagger.setAppHandler(this.app);
-        swagger.configureSwaggerPaths("", "/docs", "");
-        swagger.configure(`http://${this.host}:${this.port}`, "0.1");
-        await routes.forEachAsync(async (route) => {
-            await this.addRoute(route);
+        if (this.enableConsumerDocs) {
+            this.consumerSwagger.configureSwaggerPaths("", "/docs", "");
+            this.consumerSwagger.configure(`http://${this.host}:${this.port}`, "1");
+        }
+        if (this.enableSupplierDocs) {
+            this.supplierSwagger.configureSwaggerPaths("", "/docs", "");
+            this.supplierSwagger.configure(`http://${this.host}:${this.port}`, "1");
+        }
+        await consumerRoutes.forEachAsync(async (route) => {
+            await this.addConsumerRoute(route);
+        });
+        await supplierRoutes.forEachAsync(async (route) => {
+            await this.addSupplierRoute(route);
         });
         this.state = ApplicationState.OFFLINE;
     }

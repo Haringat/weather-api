@@ -1,22 +1,27 @@
-import {
-    readFile as readFileCb
-} from "fs";
-import {
-    promisify
-} from "util";
+import * as fs from "fs";
+import * as util from "util";
 import App from "./core/app";
 import parseConfigFile from "./core/configuration/Configuration";
 import defaultConfig from "./core/configuration/defaults";
-import console from "./core/logger";
+import {
+    IConfiguration
+} from "./core/configuration/defaults";
 
-const readFile = promisify(readFileCb);
+const readFile = util.promisify(fs.readFile);
 
 export default async function() {
 
-    const configFileContent = await readFile("./config/weather-api.json");
+    const configPath = "./config/weather-api.json";
 
-    return new App(parseConfigFile(configFileContent, defaultConfig)).bootstrap().then(() => {
-        console.info("server running");
-    });
+    let configFileContent: Buffer;
+    try {
+        configFileContent = await readFile(configPath);
+    } catch (e) {
+        throw new Error(`could not read config file at "${configPath}".`);
+    }
+    const config = parseConfigFile(configFileContent, defaultConfig) as IConfiguration;
+    const app = new App(config);
+    await app.setup();
+    await app.bootstrap();
 
 }
