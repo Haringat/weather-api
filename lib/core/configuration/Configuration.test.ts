@@ -1,19 +1,89 @@
-/**
- * Copyright (c) 2016 Marcel Mundl
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
- * the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
- 
- 
+import test from "ava";
+import parseConfig from "./Configuration";
+
+test("parses single-level configuration", async (t) => {
+    t.plan(3);
+    const config = parseConfig(Buffer.from(JSON.stringify({
+        foo: 1,
+        bar: true,
+        foobar: "barfoo"
+    }), "utf8"), {
+        foo: "fail",
+        bar: "fail",
+        foobar: "fail"
+    });
+    t.is(config.foo, 1);
+    t.is(config.bar, true);
+    t.is(config.foobar, "barfoo");
+});
+
+test("parses multi-level configuration", async (t) => {
+    t.plan(3);
+    const config = parseConfig(Buffer.from(JSON.stringify({
+        a: {
+            b: {
+                c: {
+                    foo: "bar"
+                },
+                bar: 1
+            }
+        },
+        foo: true
+    })), {
+        a: {
+            b: {
+                c: {
+                    foo: "fail"
+                },
+                bar: "fail"
+            }
+        },
+        foo: "fail"
+    });
+    t.is(config["a.b.c.foo"], "bar");
+    t.is(config["a.b.bar"], 1);
+    t.is(config.foo, true);
+});
+
+test("parses arrays in configuration", async (t) => {
+    t.plan(8);
+    const config = parseConfig(Buffer.from(JSON.stringify({
+        a: [
+            1,
+            2
+        ],
+        b: [
+            [
+                "foo",
+                true
+            ],
+            {
+                bar: false
+            }
+        ],
+        foo: true
+    })), {
+        a: [
+            "fail",
+            "fail"
+        ],
+        b: [
+            [
+                "fail",
+                "fail"
+            ],
+            {
+                bar: "fail"
+            }
+        ],
+        foo: "fail"
+    });
+    t.is(config["a[0]"], 1);
+    t.not(config["a.0"], 1, "array index formatted like string indices");
+    t.is(config["a[1]"], 2);
+    t.not(config["a.1"], 2, "array index formatted like string indices");
+    t.is(config["b[0][0]"], "foo");
+    t.is(config["b[0][1]"], true);
+    t.is(config["b[0].bar"], false);
+    t.is(config.foo, true);
+});

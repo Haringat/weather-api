@@ -1,10 +1,22 @@
+import {
+    readFile as readFileCb
+} from "fs";
+import {
+    promisify
+} from "util";
 import App from "./core/app";
+import parseConfigFile from "./core/configuration/Configuration";
+import defaultConfig from "./core/configuration/defaults";
 import console from "./core/logger";
 
-export default function() {
+const readFile = promisify(readFileCb);
 
-    return new App().bootstrap("127.0.0.1", 8080).then(() => {
-        console[`info`]("server running");
+export default async function() {
+
+    const configFileContent = await readFile("./config/weather-api.json");
+
+    return new App(parseConfigFile(configFileContent, defaultConfig)).bootstrap().then(() => {
+        console.info("server running");
     });
 
 }

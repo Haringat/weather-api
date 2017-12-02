@@ -18,10 +18,10 @@ const {
 });
 
 const console = new Console2<"info" | "log" | "error" | "warning" | "dir">({
-    alwaysTime: true,
-    alwaysTags: true,
-    alwaysLocation: true,
     alwaysDate: true,
+    alwaysLocation: true,
+    alwaysTags: true,
+    alwaysTime: true,
     logInConsole: true
 });
 

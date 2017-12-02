@@ -5,7 +5,9 @@ const gulpPlumber = require("gulp-plumber");
 const gulpRename = require("gulp-rename");
 const {
     init: initSourceMaps,
-    write: writeSourceMaps
+    write: writeSourceMaps,
+    identityMap,
+    mapSources
 } = require("gulp-sourcemaps");
 const gulpTsLint = require("gulp-tslint");
 const gulpTypescript = require("gulp-typescript");
@@ -16,7 +18,9 @@ const typescript = require("typescript");
 const tslint = require("tslint");
 
 const {
-    normalize
+    normalize,
+    sep,
+    resolve
 } = require("path");
 
 const package = require("./package.json");
@@ -45,12 +49,12 @@ const options = {
     paths: {
         get srcRoot() {
             "use strict";
-            return "./";
+            return ".";
         },
         get tsSources() {
             "use strict";
             return ["index.ts", "lib/**/*.ts"].map(path => {
-                return normalize(this.srcRoot + path)
+                return this.srcRoot + sep + path;
             });
         },
         get scriptsDist() {
@@ -95,14 +99,14 @@ const options = {
     }
 };
 
-const es6TsConfig = {
+const modernTsConfig = {
     ...tsConfig.compilerOptions,
-    target: "es2016",
-    module: "es6",
+    target: "es2017",
+    module: "es2015",
     typescript: typescript
 };
 
-const es5TsConfig = {
+const legacyTsConfig = {
     ...tsConfig.compilerOptions,
     target: "es5",
     module: "commonjs",
@@ -123,9 +127,7 @@ gulp.task("test", ["build"], () => {
 
 gulp.task("lint", () => {
     "use strict";
-    return gulp.src(options.paths.tsSources, {
-        base: options.paths.srcRoot
-    })
+    return gulp.src(options.paths.tsSources)
         .pipe(gulpPlumber())
         .pipe(gulpTsLint({
             configuration: "./tslint.json"
@@ -136,39 +138,53 @@ gulp.task("lint", () => {
         .pipe(gulpPlumber.stop());
 });
 
-gulp.task("build", ["build-es5", "build-es6"]);
+gulp.task("build", ["build-es"]);
 
-gulp.task("build-es5", ["lint"], () => {
+gulp.task("build-es", ["build-legacy-es", "build-modern-es"]);
+
+gulp.task("build-legacy-es", ["lint"], () => {
     "use strict";
     const ts = gulp.src(options.paths.tsSources, {
         base: options.paths.srcRoot
     })
         .pipe(gulpPlumber())
         .pipe(initSourceMaps())
-        .pipe(gulpTypescript(es5TsConfig));
+        .pipe(identityMap())
+        .pipe(gulpTypescript(legacyTsConfig));
+    const dts = ts.dts;
     const js = ts.js
         .pipe(gulpPlumber())
         .pipe(gulpRename(options.rename.es5Scripts))
+        /*.pipe(mapSources((sourcePath) => {
+            // TODO: find a way to fix the sourceMap source paths without using absolute paths
+            return resolve(sourcePath);
+        }))*/
         .pipe(writeSourceMaps())
         .pipe(gulpPlumber.stop())
         .pipe(gulp.dest(options.paths.scriptsDist));
-    return merge([js]);
+    return merge([js, dts]);
 });
 
-gulp.task("build-es6", ["lint"], () => {
+gulp.task("build-modern-es", ["lint"], () => {
     "use strict";
     const ts = gulp.src(options.paths.tsSources, {
         base: options.paths.srcRoot
     })
         .pipe(gulpPlumber())
         .pipe(initSourceMaps())
-        .pipe(gulpTypescript(es6TsConfig));
+        .pipe(identityMap())
+        .pipe(gulpTypescript(modernTsConfig));
+    const dts = ts.dts;
     const js = ts.js
         .pipe(gulpRename(options.rename.es6Scripts))
+        .pipe(mapSources((sourcePath, file) => {
+            // TODO: find a way to fix the sourceMap source paths without using absolute paths
+            return resolve(sourcePath);
+        }))
         .pipe(writeSourceMaps())
         .pipe(gulpPlumber.stop())
         .pipe(gulp.dest(options.paths.scriptsDist));
-    return merge([js]);
+    return merge([js, dts]);
 });
 
 gulp.task("clean", () => {

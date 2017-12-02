@@ -1,7 +1,6 @@
 export default {
     Station: {
         id: "Station",
-        required: ["id", "name"],
         properties: {
             id: {
                 type: "string",
@@ -12,6 +11,7 @@ export default {
                 type: "string",
                 description: "Name of the category"
             }
-        }
+        },
+        required: ["id", "name"]
     }
 };

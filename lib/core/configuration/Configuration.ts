@@ -1,36 +1,43 @@
-import {
-    readFile as readFileCb
-} from "fs";
-import {
-    promisify
-} from "util";
 import console from "../logger";
-import defaultConfig from "./defaults";
 
-const readFile = promisify(readFileCb);
+export interface IConfiguration {
+    readonly [key: string]: number | boolean | string;
+}
 
-export default class Configuration {
-
-    public static async parseConfigFile(configFileContent: Buffer) {
-        const configObject = JSON.parse(configFileContent.toString());
-        const parsedConfig = Configuration.parseConfig(configObject);
-        return new Proxy(new Configuration(parsedConfig, defaultConfig), {
-            get(target, key) {
-                if (target.config.hasOwnProperty(key)) {
-                    return target.config[key];
-                } else {
-                    console.error(`Tried to access non-existing config key "${key}".`);
-                    return undefined;
-                }
-            },
-            has(target, key) {
-                return target.config.hasOwnProperty(key);
-            },
-            set(target, key) {
-                console.warning(`config is read-only. Tried to set key ${key}`);
-                return false;
+export default function parseConfigFile(configFileContent: Buffer, defaultConfig: object): IConfiguration {
+    const configObject = JSON.parse(configFileContent.toString("utf8"));
+    const parsedConfig = Configuration.parseConfig(configObject);
+    return new Proxy(new Configuration(parsedConfig, defaultConfig) as any, {
+        get(target, key) {
+            if (target.config.hasOwnProperty(key)) {
+                return target.config[key];
+            } else {
+                console.error(`Tried to access non-existing config key "${key}".`);
+                return undefined;
             }
-        });
+        },
+        has(target, key) {
+            return target.config.hasOwnProperty(key);
+        },
+        ownKeys(target) {
+            return Object.getOwnPropertyNames(target);
+        },
+        set(target, key) {
+            console.warning(`config is read-only. Tried to set key ${key}`);
+            return false;
+        }
+    }) as IConfiguration;
+}
+
+class Configuration {
+
+    public static parseConfig(config: object) {
+        const configKeys = this.getConfigKeys(config);
+        console.info(JSON.stringify(configKeys));
+        return Object.values(configKeys).reduce((configuration, [key, value]) => {
+            configuration[key] = value;
+            return configuration;
+        }, {});
     }
 
     private static appendKey(prefix, key) {
@@ -43,20 +50,34 @@ export default class Configuration {
         }
     }
 
-    private static parseConfig(config: object) {
-        return Configuration.parseConfigRecursive("", config);
-    }
-
-    private static parseConfigRecursive(prefix: string, config: object | string | number) {
-        if (typeof config !== "object") {
-            return [prefix, config];
-        }
-        return Object.entries(config).map(([key, value]) => {
-            return Configuration.parseConfigRecursive(Configuration.appendKey(prefix, key), value);
-        }).reduce((conf, [key, value]) => {
-            conf[key] = value;
-            return conf;
-        }, {});
+    private static getConfigKeys(deepConfigObject) {
+        return Object.entries(deepConfigObject).map(([key, value]) => {
+            if (typeof value === "object") {
+                return this.getConfigKeys(value);
+            } else {
+                return [
+                    key,
+                    value
+                ];
+            }
+        }).reduce((configs, [key, conf]) => {
+            if (conf instanceof Array) {
+                return [
+                    ...configs,
+                    conf.map(([confKey, confValue]) => {
+                        return [
+                            Configuration.appendKey(key, confKey),
+                            confValue
+                        ];
+                    })
+                ];
+            } else {
+                return [
+                    ...configs,
+                    [key, conf]
+                ];
+            }
+        }, []);
     }
 
     public config: {
