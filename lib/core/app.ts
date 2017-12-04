@@ -33,16 +33,14 @@ export default class Application {
 
     public app = express();
 
-    private consumerAPI = express();
-    private consumerSwagger;
+    private api = express();
+    private swagger;
     private enableConsumerDocs: boolean;
     private enableSupplierDocs: boolean;
     private host: string;
     private port: number;
     private server: Server;
     private state: ApplicationState = ApplicationState.UNCONFIGURED;
-    private supplierAPI = express();
-    private supplierSwagger;
 
     constructor(config: IConfiguration) {
 
@@ -55,35 +53,40 @@ export default class Application {
 
         this.app.use(expressMiddleWare);
 
-        if (this.enableConsumerDocs) {
-            this.consumerSwagger = swagger.createNew(this.consumerAPI);
-        }
-        if (this.enableSupplierDocs) {
-            this.supplierSwagger = swagger.createNew(this.supplierAPI);
-        }
+        this.api.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
+            response.removeHeader("X-Powered-By");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            next();
+        });
+        this.app.use((request: express.Request, response: express.Response, next: express.NextFunction) => {
+            response.removeHeader("X-Powered-By");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            next();
+        });
 
-        this.app.use("/v1/consumer", this.consumerAPI);
-        this.app.use("/v1/supplier", this.supplierAPI);
+        this.swagger = swagger.createNew(this.api);
+
+        this.app.use("/v1", this.api);
+
     }
 
     public async setup() {
         await this.setupSwagger();
     }
 
-    // noinspection JSMethodCanBeStatic
     public async addSupplierRoute(route) {
         if (this.enableSupplierDocs) {
-            this.supplierSwagger.addHandlers(route.spec.method, [route]);
+            this.swagger.addHandlers(route.spec.method, [route]);
         } else {
-            this.supplierAPI.use(route.spec.path, route.action);
+            this.api.use(route.spec.path, route.action);
         }
     }
 
     public async addConsumerRoute(route) {
         if (this.enableConsumerDocs) {
-            this.consumerSwagger.addHandlers(route.spec.method, [route]);
+            this.swagger.addHandlers(route.spec.method, [route]);
         } else {
-            this.consumerAPI.use(route.spec.path, route.action);
+            this.api.use(route.spec.path, route.action);
         }
     }
 
@@ -123,22 +126,40 @@ export default class Application {
             console.warning("tried to reconfigure application server.");
             return;
         }
-        if (this.enableConsumerDocs) {
-            this.consumerSwagger.configureSwaggerPaths("", "/docs", "");
-            this.consumerSwagger.configure(`http://${this.host}:${this.port}`, "1");
-            this.consumerSwagger.addModels(models);
-        }
-        if (this.enableSupplierDocs) {
-            this.supplierSwagger.configureSwaggerPaths("", "/docs", "");
-            this.supplierSwagger.configure(`http://${this.host}:${this.port}`, "1");
-            this.supplierSwagger.addModels(models);
-        }
         await consumerRoutes.forEachAsync(async (route) => {
             await this.addConsumerRoute(route);
         });
         await supplierRoutes.forEachAsync(async (route) => {
             await this.addSupplierRoute(route);
         });
+        this.swagger.configureSwaggerPaths("", "/api-docs", "");
+        this.swagger.addModels(models);
+        this.swagger.setApiInfo({
+            title: "weather api",
+            description: "An api for weather data",
+            termsOfService: "http://example.com",
+            contact: "contact@example.com",
+            license: "FOO",
+            licenseUrl: "http://example.com"
+        });
+        this.swagger.setHeaders = (res) => {
+            res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            res.setHeader("Content-Type", "Application/json");
+        };
+        this.swagger.configureDeclaration("stations", {
+            description: "provides endpoints for working with stations",
+            authorizations : [],
+            protocols : ["http"],
+            consumes: [
+                "Application/JSON",
+                "Application/XML"
+            ],
+            produces: [
+                "Application/JSON",
+                "Application/XML"
+            ]
+        });
+        this.swagger.configure(`http://${this.host}:${this.port}/v1`, "1.0.0");
         this.state = ApplicationState.OFFLINE;
     }
 
