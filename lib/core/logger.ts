@@ -5,7 +5,7 @@ const {
     logger
 } = expressLogger;
 
-const {
+export const {
    Console2
 } = scribeJs({
     createDefaultConsole: true,

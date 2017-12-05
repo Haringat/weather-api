@@ -575,3 +575,4 @@ bin6
 *.js
 *.mjs
 config/weather-api.json
+!gulpfile.js

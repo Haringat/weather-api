@@ -4,6 +4,8 @@
     "target": "es2017",
     "sourceMap": true,
     "moduleResolution": "node",
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
     "lib": ["es7", "es2017.object"]
   },
   "exclude": [

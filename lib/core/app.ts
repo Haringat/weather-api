@@ -5,6 +5,7 @@ import {
     Server
 } from "http";
 import * as swagger from "swagger-node-express";
+import * as deps from "ts-dependency-injection";
 import models from "../models";
 import {
     consumerRoutes,
@@ -20,6 +21,10 @@ import console, {
 const {
     createServer
 } = http;
+const {
+    Injection,
+    NamedInjection
+} = deps;
 
 enum ApplicationState {
     UNCONFIGURED,
@@ -35,6 +40,8 @@ export default class Application {
 
     private api = express();
     private swagger;
+    @NamedInjection("configuration")
+    private config: IConfiguration;
     private enableConsumerDocs: boolean;
     private enableSupplierDocs: boolean;
     private host: string;

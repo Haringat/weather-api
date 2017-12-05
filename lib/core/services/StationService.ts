@@ -12,4 +12,8 @@ export default class StationService {
         this.storageService.addStation(station);
     }
 
+    public getAll() {
+        return this.storageService.getAllStations();
+    }
+
 }

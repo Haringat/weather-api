@@ -6,7 +6,8 @@ import Application from "../../../core/app";
 export default function(app: Application) {
     return async function getAllStations(request: Request, response: Response) {
         try {
-            app
+            const
+        } catch (e) {
         }
     };
 }
