@@ -3,11 +3,15 @@ import parseConfig from "./Configuration";
 
 test("parses single-level configuration", async (t) => {
     t.plan(3);
-    const config = parseConfig(Buffer.from(JSON.stringify({
+    const config = parseConfig<{
+        foo: number,
+        bar: boolean,
+        foobar: string
+    }>(Buffer.from(JSON.stringify({
         foo: 1,
         bar: true,
         foobar: "barfoo"
-    }), "utf8"), {
+    })), {
         foo: "fail",
         bar: "fail",
         foobar: "fail"
@@ -19,7 +23,11 @@ test("parses single-level configuration", async (t) => {
 
 test("parses multi-level configuration", async (t) => {
     t.plan(3);
-    const config = parseConfig(Buffer.from(JSON.stringify({
+    const config = parseConfig<{
+        "a.b.c.foo": string,
+        "a.b.bar": number,
+        foo: boolean
+    }>(Buffer.from(JSON.stringify({
         a: {
             b: {
                 c: {
@@ -47,7 +55,14 @@ test("parses multi-level configuration", async (t) => {
 
 test("parses arrays in configuration", async (t) => {
     t.plan(6);
-    const config = parseConfig(Buffer.from(JSON.stringify({
+    const config = parseConfig<{
+        "a.0": number,
+        "a.1": number,
+        "b.0.0": string,
+        "b.0.1": boolean,
+        "b.0.bar": boolean,
+        foo: boolean
+    }>(Buffer.from(JSON.stringify({
         a: [
             1,
             2

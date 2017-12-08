@@ -1,28 +1,34 @@
 import RawUnit from "../storage/model/Unit";
 import StorageService from "../storage/StorageService";
 
+export interface IUnit {
+    id: string;
+    name: string;
+}
+
 export default class Unit {
 
     public get id() {
-        return this.raw.id;
+        return this._id;
     }
 
     public get name() {
-        return this.raw.name;
+        return this._name;
     }
 
-    constructor(private raw: RawUnit, storageService: StorageService) {
+    private _id: string;
+    private _name: string;
 
+    constructor(private _raw: RawUnit) {
     }
 
-    public resolve(storageService: StorageService) {
-        return this;
+    public async resolve(storageService: StorageService) {
+        this._id = this._raw.id;
+        this._name = this._raw.name;
     }
 
     public toJSON() {
-        return {
-
-        }
+        return this.name;
     }
 
 }

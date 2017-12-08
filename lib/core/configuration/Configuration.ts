@@ -1,14 +1,19 @@
-import {
-    flatten
-} from "flat";
+import * as flat from "flat";
 import console from "../logger";
+
+const {
+    flatten
+} = flat;
 
 export interface IConfiguration {
     readonly [key: string]: number | boolean | string;
 }
 
-export default function parseConfigFile(configFileContent: Buffer, defaultConfig: object): IConfiguration {
-    const configObject = JSON.parse(configFileContent.toString("utf8"));
+export default function parseConfigFile<T extends object>(
+    configFileContent: Buffer,
+    defaultConfig: object
+): T {
+    const configObject = JSON.parse(configFileContent.toString());
     const flatConfig = flatten(configObject, {
         maxDepth: 100
     });
@@ -33,7 +38,7 @@ export default function parseConfigFile(configFileContent: Buffer, defaultConfig
             console.warning(`config is read-only. Tried to set key ${key}`);
             return false;
         }
-    }) as IConfiguration;
+    }) as T;
 }
 
 class Configuration {

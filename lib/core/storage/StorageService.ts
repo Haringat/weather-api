@@ -1,54 +1,93 @@
-import Capability from "../model/Capability";
-import Station from "../model/Station";
-import WeatherDataPoint from "../model/WeatherDataPoint";
+import RawCapability from "./model/Capability";
+import RawStation from "./model/Station";
+import StationCapability from "./model/StationCapability";
+import RawUnit from "./model/Unit";
+import RawWeatherDataPoint from "./model/WeatherDataPoint";
 
 export default class StorageService {
-    private stations: Array<Station> = [];
-    private historyData: Array<WeatherDataPoint<number|string>> = [];
-    private forecastData: Array<WeatherDataPoint<number|string>> = [];
-    private capabilities: Array<Capability> = [];
+
+    private static cloneArrayOfObjects<T extends object>(array: Array<T>): Array<T> {
+        return array.map((entity) => {
+            const descriptor = Object.entries(entity).map(([key, value]) => {
+                return {
+                    [key]: {
+                        value,
+                        configurable: true,
+                        enumerable: true,
+                        writable: true
+                    }
+                };
+            }).reduce((propertyDescriptor, singlePropertyDescriptor) => {
+                return {
+                    ...propertyDescriptor,
+                    ...singlePropertyDescriptor
+                };
+            }, {});
+            return Object.create(Object.getPrototypeOf(entity), descriptor);
+        });
+    }
+
+    private static throwModelNotFoundError(msg: string) {
+        const e = new Error(msg);
+        e.name = "ModelNotFoundError";
+        throw e;
+    }
+
+    private _capabilities: Array<RawCapability> = [];
+    private _forecastData: Array<RawWeatherDataPoint<number|string>> = [];
+    private _historyData: Array<RawWeatherDataPoint<number|string>> = [];
+    private _stationCapabilities: Array<StationCapability> = [];
+    private _stations: Array<RawStation> = [];
+    private _units: Array<RawUnit> = [];
 
     public async getAllStations() {
-        // clone the array
-        return [...this.stations];
+        return StorageService.cloneArrayOfObjects<RawStation>(this._stations);
     }
 
     public async getStation(id: string) {
-        const foundStation = this.stations.find((station) => station.id === id);
+        const foundStation = this._stations.find((station) => station.id === id);
         if (foundStation !== null) {
             return foundStation;
         } else {
-            this.throwModelNotFoundError(`No station with id "${id}"`);
+            StorageService.throwModelNotFoundError(`No station with id "${id}"`);
         }
     }
 
-    public async addStation(station: Station) {
-        this.stations.push(station);
+    public async addCapability(capability: RawCapability) {
+        this._capabilities.push(capability);
+    }
+
+    public async addStation(station: RawStation) {
+        this._stations.push(station);
+    }
+
+    public async addStationCapability(stationCapability: StationCapability) {
+        this._stationCapabilities.push(stationCapability);
     }
 
     public async getHistoryData() {
-        return this.historyData.map((dataPoint) => {
+        return this._historyData.map((dataPoint) => {
             return {
                 ...dataPoint
             };
         });
     }
 
-    public async addHistoryDataPoint(dataPoint: WeatherDataPoint<number> | WeatherDataPoint<string>) {
-        this.historyData.push(dataPoint);
+    public async addHistoryDataPoint(dataPoint: RawWeatherDataPoint<number> | RawWeatherDataPoint<string>) {
+        this._historyData.push(dataPoint);
     }
 
     public async getHistoryDataPoint(id: string) {
-        const dataPoint = this.historyData.find((historyDataPoint) => historyDataPoint.id === id);
+        const dataPoint = this._historyData.find((historyDataPoint) => historyDataPoint.id === id);
         if (dataPoint !== null) {
             return dataPoint;
         } else {
-            this.throwModelNotFoundError(`No history data point with id "${id}"`);
+            StorageService.throwModelNotFoundError(`No history data point with id "${id}"`);
         }
     }
 
     public async getHistoryDataByStationAndDate(stationId: string, date: Date) {
-        const dataPoint = this.historyData.filter(
+        const dataPoint = this._historyData.filter(
             (historyDataPoint) => historyDataPoint.stationId === stationId
         ).find((historyDataPoint) => {
             return historyDataPoint.date.getUTCFullYear() === date.getUTCFullYear()
@@ -60,62 +99,82 @@ export default class StorageService {
         if (dataPoint !== null) {
             return dataPoint;
         } else {
-            this.throwModelNotFoundError(
+            StorageService.throwModelNotFoundError(
                 `No history data point at date "${date.toISOString()}" and stationId "${stationId}"`
             );
         }
     }
 
-    public async addForecastDataPoint(dataPoint: WeatherDataPoint<number> | WeatherDataPoint<string>) {
-        this.forecastData.push(dataPoint);
+    public async addForecastDataPoint(dataPoint: RawWeatherDataPoint<number> | RawWeatherDataPoint<string>) {
+        this._forecastData.push(dataPoint);
     }
 
     public async getForecastDataPoint(id: string) {
-        const dataPoint = this.historyData.find((historyDataPoint) => historyDataPoint.id === id);
+        const dataPoint = this._forecastData.find((historyDataPoint) => historyDataPoint.id === id);
         if (dataPoint !== null) {
             return dataPoint;
         } else {
-            this.throwModelNotFoundError(`No history data point with id "${id}"`);
+            StorageService.throwModelNotFoundError(`No history data point with id "${id}"`);
         }
     }
 
     public async getForecastDataByStationAndDate(stationId: string, date: Date) {
-        const dataPoint = this.historyData.filter(
+        const dataPoint = this._forecastData.filter(
             (forecastDataPoint) => forecastDataPoint.stationId === stationId
-        ).filter((historyDataPoint) => {
-            return historyDataPoint.date.getUTCFullYear() === date.getUTCFullYear()
-                && historyDataPoint.date.getUTCMonth() === date.getUTCMonth()
-                && historyDataPoint.date.getUTCDate() === date.getUTCDate();
-        }).sort((dataPointA, dataPointB) => {
-            if (dataPointA.dateOfMeasure < dataPointB.dateOfMeasure) {
-                return -1;
-            } else if (dataPointA.dateOfMeasure > dataPointB.dateOfMeasure) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }).reverse().find((historyDataPoint, index, history) => {
-            return historyDataPoint.dateOfMeasure.valueOf() === history[0].dateOfMeasure.valueOf();
+        ).find((forecastDataPoint) => {
+            return forecastDataPoint.date.getUTCFullYear() === date.getUTCFullYear()
+                && forecastDataPoint.date.getUTCMonth() === date.getUTCMonth()
+                && forecastDataPoint.date.getUTCDate() === date.getUTCDate()
+                && forecastDataPoint.date.getUTCHours() === date.getUTCHours()
+                && forecastDataPoint.date.getUTCSeconds() === date.getUTCSeconds();
         });
         if (dataPoint !== null) {
             return dataPoint;
         } else {
-            this.throwModelNotFoundError(
+            StorageService.throwModelNotFoundError(
                 `No history data point at date "${date.toISOString()}" and stationId "${stationId}"`
             );
         }
     }
 
     public async getForecastDataByStation(stationId: string) {
-        return this.historyData.filter(
+        return this._forecastData.filter(
             (forecastDataPoint) => forecastDataPoint.stationId === stationId
         );
     }
 
-    private throwModelNotFoundError(msg: string) {
-        const e = new Error(msg);
-        e.name = "ModelNotFoundError";
-        throw e;
+    public async getCapability(capabilityId: string) {
+        const foundCapability = this._capabilities.find((capability) => capability.id === capabilityId);
+        if (foundCapability !== null) {
+            return foundCapability;
+        } else {
+            StorageService.throwModelNotFoundError(`No capability with id "${capabilityId}"`);
+        }
+    }
+
+    public async getStationCapabilities(stationId: string) {
+        return this._stationCapabilities.filter((stationCapability) => stationCapability.stationId === stationId);
+    }
+
+    public async getAllCapabilities() {
+        return StorageService.cloneArrayOfObjects<RawCapability>(this._capabilities);
+    }
+
+    public async getUnit(unitId: string) {
+        const foundUnit = this._units.find((unit) => unit.id === unitId);
+        if (foundUnit !== null) {
+            return foundUnit;
+        } else {
+            StorageService.throwModelNotFoundError(`No unit with id "${unitId}"`);
+        }
+    }
+
+    public async getAllUnits() {
+        return StorageService.cloneArrayOfObjects(this._units);
+    }
+
+    public async addUnit(unit: RawUnit) {
+        this._units.push(unit);
     }
 
 }

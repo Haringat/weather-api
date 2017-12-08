@@ -25,7 +25,8 @@
             }
         ],
         "no-console": [false],
-        "array-type": [true, "generic"]
+        "array-type": [true, "generic"],
+        "variable-name": [true, "allow-leading-underscore"]
     },
     "rulesDirectory": []
 }

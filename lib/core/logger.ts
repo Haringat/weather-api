@@ -5,6 +5,8 @@ const {
     logger
 } = expressLogger;
 
+export type loggerMethods = "info" | "log" | "error" | "warning" | "dir";
+
 export const {
    Console2
 } = scribeJs({
@@ -12,7 +14,7 @@ export const {
     rootPath: "./logs"
 });
 
-const console = new Console2<"info" | "log" | "error" | "warning" | "dir">({
+const console = new Console2<loggerMethods>({
     alwaysDate: true,
     alwaysLocation: true,
     alwaysTags: true,

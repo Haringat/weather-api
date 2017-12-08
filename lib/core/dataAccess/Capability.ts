@@ -1,23 +1,40 @@
-import RawCapability from "../storage/model/Capability";
 import StorageService from "../storage/StorageService";
 import Unit from "./Unit";
+
+export interface ICapability {
+
+    id: string;
+    name: string;
+    unitId: string;
+
+}
 
 export default class Capability {
 
     public get id() {
-        return this.raw.id;
+        return this._id;
     }
 
     public get name() {
-        return this.raw.name;
-    }
-    public unit: Unit;
-
-    constructor(private raw: RawCapability) {
+        return this._name;
     }
 
-    public resolve(storageService: StorageService) {
-        return this;
+    public get unit() {
+        return this._unit;
+    }
+
+    private _id: string;
+    private _name: string;
+    private _unit: Unit;
+
+    constructor(private _raw: ICapability) {
+    }
+
+    public async resolve(storageService: StorageService) {
+        this._id = this._raw.id;
+        this._name = this._raw.name;
+        const rawUnit = await storageService.getUnit(this._raw.unitId);
+        this._unit = new Unit(rawUnit);
     }
 
 }

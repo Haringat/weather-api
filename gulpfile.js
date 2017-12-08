@@ -30,20 +30,32 @@ const tsConfig = require("./tsconfig.json");
 /*import gulp from "gulp";
 import gulpAva from "gulp-ava";
 import gulpPlumber from "gulp-plumber";
-import {
-    init as initSourceMaps,
-    write as writeSourceMaps
-} from "gulp-sourcemaps";
+import gulpRename from "gulp-rename";
+import gulpSourcemaps from "gulp-sourcemaps";
 import gulpTsLint from "gulp-tslint";
 import gulpTypescript from "gulp-typescript";
 
 import tslint from "tslint";
 import typescript from "typescript";
 
-import {normalize} from "path";
+import path from "path";
 
 import package from "json!./package.json";
-import tsConfig from "json!./tsconfig.json";*/
+import tsConfig from "json!./tsconfig.json";
+
+const {
+    init as initSourceMaps,
+    write as writeSourceMaps,
+    identityMap,
+    mapSources
+} = gulpSourcemaps;
+
+const {
+    normalize,
+    sep,
+    resolve
+} = path;
+*/
 
 const options = {
     paths: {
