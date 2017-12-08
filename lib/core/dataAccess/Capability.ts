@@ -37,4 +37,16 @@ export default class Capability {
         this._unit = new Unit(rawUnit);
     }
 
+    public toXML() {
+        return `<capability id="${this.id}" name="${this.name}" unit="${this.unit.name}"/>`;
+    }
+
+    public toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+            unit: this.unit
+        }
+    }
+
 }

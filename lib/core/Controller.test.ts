@@ -13,7 +13,7 @@ import {
 import Controller, {
     methodName
 } from "./Controller";
-import logger from "./logger";
+import LoggerService from "./services/LoggerService";
 
 const {
     Writable
@@ -21,7 +21,8 @@ const {
 
 test.beforeEach(async (t) => {
     // noinspection UnnecessaryLocalVariableJS
-    const app = new Application(parseConfigFile<IConfiguration>(Buffer.from(JSON.stringify({
+    const loggerService = new LoggerService();
+    const configuration = parseConfigFile<IConfiguration>(Buffer.from(JSON.stringify({
         router: {
             host: "127.0.0.1",
             port: 0
@@ -31,7 +32,8 @@ test.beforeEach(async (t) => {
             host: "127.0.0.1",
             port: 0
         }
-    }), logger);
+    });
+    const app = new Application(configuration, loggerService);
     t.context.app = app;
 });
 
@@ -137,7 +139,7 @@ test("supports replace", async (t) => {
         public path: string = "/replace";
 
         public async replace(request: Request, response: Response) {
-            const body = JSON.parse(request.body.toString());
+            const body = request.body;
             t.deepEqual(body, {
                 foo: "bar"
             });
@@ -169,7 +171,7 @@ test("supports replace", async (t) => {
 
     await testServer.put(
         "/v1/replace/foo"
-    ).type("application/json").send({
+    ).set("Content-Type", "Application/JSON").type("application/json").send({
         foo: "bar"
     }).expect(200);
 });
@@ -224,7 +226,7 @@ test("supports modify", async (t) => {
         public path: string = "/modify";
 
         public async modify(request: Request, response: Response) {
-            const body = JSON.parse(request.body.toString());
+            const body = request.body;
             t.is(request.params.modifyId, "foo");
             t.deepEqual(body, {
                 foo: "bar"
@@ -271,7 +273,7 @@ test("supports add", async (t) => {
         public path: string = "/add";
 
         public async add(request: Request, response: Response) {
-            const body = JSON.parse(request.body.toString());
+            const body = request.body;
             t.deepEqual(body, {
                 foo: "bar"
             });
@@ -287,20 +289,17 @@ test("supports add", async (t) => {
 
     const testServer = supertest(Reflect.get(app, "_server"));
 
-    await testServer.options(
+    const actionOptionsResponse = await testServer.options(
         "/v1/add"
-    ).expect((res: supertest.Response) => {
-        t.is(res.get("Access-Control-Allow-Methods"), "post");
-        t.is(res.status, 200);
-    });
+    );
+    t.is(actionOptionsResponse.get("Access-Control-Allow-Methods"), "post");
+    t.is(actionOptionsResponse.status, 200);
 
-    await testServer.options(
+    const resourceOptionsResponse = await testServer.options(
         "/v1/add/foo"
-    ).expect((res: supertest.Response) => {
-        t.is(res.get("Access-Control-Allow-Methods"), "");
-        t.is(res.status, 200);
-    });
-
+    );
+    t.is(resourceOptionsResponse.get("Access-Control-Allow-Methods"), "");
+    t.is(resourceOptionsResponse.status, 200);
     await testServer.post(
         "/v1/add"
     ).send({

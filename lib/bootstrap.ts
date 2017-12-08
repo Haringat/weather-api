@@ -8,8 +8,8 @@ import defaultConfig from "./core/configuration/defaults";
 import {
     IConfiguration
 } from "./core/configuration/defaults";
-import logger from "./core/logger";
 import CapabilityService from "./core/services/CapabilityService";
+import LoggerService from "./core/services/LoggerService";
 import StationService from "./core/services/StationService";
 import UnitService from "./core/services/UnitService";
 import StorageService from "./core/storage/StorageService";
@@ -28,13 +28,14 @@ export default async function() {
     }
 
     const config = parseConfigFile<IConfiguration>(configFileContent, defaultConfig);
-    const app = new Application(config, logger);
-    const storageService = new StorageService();
+    const loggerService = new LoggerService();
+    const app = new Application(config, loggerService);
+    const storageService = new StorageService(loggerService);
     const unitService = new UnitService(storageService);
     const capabilityService = new CapabilityService(storageService, unitService);
     const stationsService = new StationService(storageService, capabilityService);
-    app.addController(new StationsController(logger, stationsService));
-    app.addController(new CapabilityController(logger, capabilityService));
+    app.addController(new StationsController(loggerService, stationsService));
+    app.addController(new CapabilityController(loggerService, capabilityService));
 
     await app.setup();
     await app.bootstrap();

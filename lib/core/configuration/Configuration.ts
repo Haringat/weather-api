@@ -1,5 +1,4 @@
 import * as flat from "flat";
-import console from "../logger";
 
 const {
     flatten
@@ -24,7 +23,6 @@ export default function parseConfigFile<T extends object>(
             if (target.config.hasOwnProperty(key)) {
                 return target.config[key];
             } else {
-                console.error(`Tried to access non-existing config key "${key}".`);
                 return undefined;
             }
         },
@@ -35,7 +33,6 @@ export default function parseConfigFile<T extends object>(
             return Object.getOwnPropertyNames(target);
         },
         set(target, key) {
-            console.warning(`config is read-only. Tried to set key ${key}`);
             return false;
         }
     }) as T;
@@ -51,8 +48,6 @@ class Configuration {
         Object.getOwnPropertyNames(defaults).forEach((propertyName) => {
             if (!config.hasOwnProperty(propertyName)) {
                 const defaultValue = defaults[propertyName];
-                console.warning(`Missing configuration value for key "${propertyName}" (Expected type:` +
-                    `"${typeof defaultValue}"). Falling back to default value "${defaultValue}"`);
             }
         });
         this.config = {

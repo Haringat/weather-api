@@ -5,8 +5,8 @@ import parseConfigFile from "../core/configuration/Configuration";
 import {
     IConfiguration
 } from "../core/configuration/defaults";
-import logger from "../core/logger";
 import CapabilityService from "../core/services/CapabilityService";
+import LoggerService from "../core/services/LoggerService";
 import StationService from "../core/services/StationService";
 import UnitService from "../core/services/UnitService";
 import StorageService from "../core/storage/StorageService";
@@ -24,13 +24,14 @@ test.beforeEach(async (t) => {
             port: 0
         }
     }) as IConfiguration;
-    const app = new Application(config, logger);
-    const storageService = new StorageService();
+    const loggerService = new LoggerService();
+    const app = new Application(config, loggerService);
+    const storageService = new StorageService(loggerService);
     t.context.storageService = storageService;
     const unitService = new UnitService(storageService);
     const capabilityService = new CapabilityService(storageService, unitService);
     const stationsService = new StationService(storageService, capabilityService);
-    const stationsController = new StationsController(logger, stationsService);
+    const stationsController = new StationsController(loggerService, stationsService);
     app.addController(stationsController);
     await app.setup();
     await app.bootstrap();

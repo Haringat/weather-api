@@ -1,11 +1,13 @@
 import * as process from "process";
 import bootstrap from "./bootstrap";
-import console from "./core/logger";
+import LoggerService from "./core/services/LoggerService";
+
+const logger = new LoggerService();
 
 bootstrap().then(() => {
-    console.info("server running");
+    logger.info("server running");
 }, (e) => {
-    console.error("bootstrap failed due to an error.");
-    console.error(e.stack);
+    logger.error("bootstrap failed due to an error.");
+    logger.error(e.stack);
     process.exit(-1);
 });

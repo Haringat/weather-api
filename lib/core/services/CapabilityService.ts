@@ -92,10 +92,35 @@ export default class CapabilityService implements ICapabilityService {
         return capability;
     }
 
-    public async delete(capability: Capability) {
-        const e = new Error("not implemented");
-        e.name = "NotImplementedError";
-        throw e;
+    public async delete(capabilityId: string) {
+        await this._storageService.deleteCapabilityById(capabilityId);
     }
 
+    public async getAll() {
+        return await this._storageService.getAllCapabilities();
+    }
+
+    public async getById(id: string) {
+        const capabilities = await this.getAll();
+        const foundCapability = capabilities.find((capability) => capability.id === id);
+        if (foundCapability !== null) {
+            return foundCapability;
+        } else {
+            const e = new Error(`No capability with id "${id}"`);
+            e.name = "ModelNotFoundError";
+            throw e;
+        }
+    }
+
+    public async getByName(name: string) {
+        const capabilities = await this.getAll();
+        const foundCapability = capabilities.find((capability) => capability.name === name);
+        if (foundCapability !== null) {
+            return foundCapability;
+        } else {
+            const e = new Error(`No capability with name "${name}"`);
+            e.name = "ModelNotFoundError";
+            throw e;
+        }
+    }
 }

@@ -1,3 +1,6 @@
+import LoggerService, {
+    loggerMethods
+} from "../services/LoggerService";
 import RawCapability from "./model/Capability";
 import RawStation from "./model/Station";
 import StationCapability from "./model/StationCapability";
@@ -39,6 +42,9 @@ export default class StorageService {
     private _stationCapabilities: Array<StationCapability> = [];
     private _stations: Array<RawStation> = [];
     private _units: Array<RawUnit> = [];
+
+    constructor(private _logger: LoggerService) {
+    }
 
     public async getAllStations() {
         return StorageService.cloneArrayOfObjects<RawStation>(this._stations);
@@ -177,4 +183,14 @@ export default class StorageService {
         this._units.push(unit);
     }
 
+    public async deleteCapabilityById(capabilityId: string) {
+        const index = this._capabilities.findIndex(((capability) => capability.id === capabilityId));
+        if (index !== -1) {
+            this._capabilities.splice(index, 1);
+        } else {
+            const e = new Error(`no capability with id "${capabilityId}"`);
+            e.name = "ModelNotFoundError";
+            throw e;
+        }
+    }
 }

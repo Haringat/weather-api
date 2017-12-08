@@ -4,6 +4,7 @@ import {
     Response
 } from "express";
 import * as stream from "stream";
+import * as parseXML from "xml-parser";
 
 const {
     Writable
@@ -29,19 +30,9 @@ class BufferingStream extends Writable {
 
 }
 
-function parseXML(body: string) {
-    const match = body.match(xmlHeader);
-    if (match !== null) {
-        const bodyJSON = {};
-
-    } else {
-        throw new Error("Body is not xml");
-    }
-}
-
-export default function bufferMiddleware() {
+export function bodyBuffer() {
     return (request: Request, response: Response, next: NextFunction) => {
-        if (request.headers["Content-Length"]) {
+        if (request.headers["content-length"]) {
             request.pipe(new BufferingStream((body) => {
                 request.body = body;
                 next(null);
@@ -55,8 +46,8 @@ export default function bufferMiddleware() {
 export function jsonParser() {
     return (request: Request, response: Response, next: NextFunction) => {
         if (
-            typeof request.headers["Content-Type"] === "string" &&
-            (request.headers["Content-Type"] as string).toLowerCase() === "application/json"
+            typeof request.headers["content-type"] === "string" &&
+            (request.headers["content-type"] as string).toLowerCase() === "application/json"
         ) {
             request.body = JSON.parse(request.body.toString());
         }
@@ -67,14 +58,26 @@ export function jsonParser() {
 export function xmlParser() {
     return (request: Request, response: Response, next: NextFunction) => {
         if (
-            typeof request.headers["Content-Type"] === "string" &&
+            typeof request.headers["content-type"] === "string" &&
             (
-                (request.headers["Content-Type"] as string).toLowerCase() === "text/xml" ||
-                (request.headers["Content-Type"] as string).toLowerCase() === "application/xml"
+                (request.headers["content-type"] as string).toLowerCase() === "text/xml" ||
+                (request.headers["content-type"] as string).toLowerCase() === "application/xml"
             )
         ) {
-            request.body = parseXML(request.body.toString());
+            request.body = parseXMLNode(parseXML(request.body.toString()).root);
         }
         next(null);
     };
+}
+
+function parseXMLNode(node: parseXML.Node) {
+    const result: {
+        [key: string]: any
+    } = {
+        ...node.attributes
+    };
+    node.children.forEach((childNode) => {
+        result[childNode.name] = parseXMLNode(childNode);
+    });
+    return result;
 }

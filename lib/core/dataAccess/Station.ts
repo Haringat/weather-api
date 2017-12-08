@@ -76,4 +76,11 @@ export default class Station {
         };
     }
 
+    public toXML() {
+        return `<station id="${this.id}" name="${this.name}" latitude="${this.latitude}"` +
+ ` longitude="${this.longitude}" altitude="${this.altitude}">
+    ${this.capabilities.map((capability) => capability.toXML()).join("\n    ")}
+</station>`;
+    }
+
 }

@@ -7,9 +7,7 @@ import {
 import Controller, {
     methodName
 } from "../core/Controller";
-import {
-    loggerMethods
-} from "../core/logger";
+import LoggerService from "../core/services/LoggerService";
 import StationService from "../core/services/StationService";
 
 export default class StationsController extends Controller {
@@ -18,7 +16,7 @@ export default class StationsController extends Controller {
     public supportedHttpMethods: Array<methodName> = ["getSingle", "getAll", "add", "modify", "remove"];
 
     constructor(
-        private _logger: Console2<loggerMethods>,
+        private _logger: LoggerService,
         private _stationsService: StationService
     ) {
         super();

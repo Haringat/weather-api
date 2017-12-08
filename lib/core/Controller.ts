@@ -1,12 +1,6 @@
 import {
     Request, Response
 } from "express";
-import {
-    Console2
-} from "scribe-js/lib/console2";
-import {
-    loggerMethods
-} from "./logger";
 
 const methodMap = {
     getAll: "get",

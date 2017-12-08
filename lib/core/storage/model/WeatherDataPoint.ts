@@ -1,6 +1,6 @@
-export default abstract class WeatherDataPoint<T extends string | number> {
+export default abstract class WeatherDataPoint {
     public id: string;
-    public value: T;
+    public value: string | number;
     public stationId: string;
     public capabilityId: string;
     public date: Date;
