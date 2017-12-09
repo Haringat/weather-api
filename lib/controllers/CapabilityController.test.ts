@@ -8,6 +8,8 @@ import {
 import CapabilityService from "../core/services/CapabilityService";
 import LoggerService from "../core/services/LoggerService";
 import UnitService from "../core/services/UnitService";
+import Capability from "../core/storage/model/Capability";
+import Unit from "../core/storage/model/Unit";
 import StorageService from "../core/storage/StorageService";
 import CapabilityController from "./CapabilityController";
 
@@ -37,60 +39,61 @@ test.beforeEach(async (t) => {
 });
 
 test("add capability", async (t) => {
-    t.plan(3);
+    t.plan(2);
     const testServer = superTest(t.context.app._server);
     const response: superTest.Response = await testServer.post(
         "/v1/capabilities"
-    ).send(JSON.stringify({
-        name: "temperature",
-        unit: "°C"
-    }));
-    t.is(response.status, 200);
-    t.is(response.header["Content-Type"].toLowerCase(), "application/json");
-    const body = JSON.parse(response.body);
-    t.true(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(body.id));
+    ).send({
+        data: {
+            name: "temperature",
+            unit: "°C"
+        }
+    }).set("Accept", "Application/JSON").expect(201);
+    t.true(response.header["content-type"].toLowerCase().includes("application/json"));
+    t.true(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(response.body.data.id));
 });
 
 test("remove capability", async (t) => {
-    t.plan(3);
+    t.plan(2);
     t.context.storageService._capabilities.push({
         id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
         name: "humidity",
         unitId: "6d6126ad-7354-48ee-87ba-bdaa77320fd1"
     });
-    t.context.storageService_units.push({
+    t.context.storageService._units.push({
         id: "6d6126ad-7354-48ee-87ba-bdaa77320fd1",
         name: "%"
     });
     const testServer = superTest(t.context.app._server);
-    const response: superTest.Response = await testServer.delete(
+    await testServer.delete(
         "/v1/capabilities/2a9fea2c-1227-42d7-8285-ef3ee8170ba8"
-    );
-    t.is(response.status, 200);
+    ).expect(200);
     t.is(t.context.storageService._capabilities.length, 0, "capability was not actually deleted");
-    t.is(t.context.storageService_units.length, 1, "deleting capability also deleted unit");
+    t.is(t.context.storageService._units.length, 1, "deleting capability also deleted unit");
 });
 
 test("get capability by name", async (t) => {
-    t.context.storageService._capabilities.push({
-        id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
-        name: "humidity",
-        unitId: "6d6126ad-7354-48ee-87ba-bdaa77320fd1"
-    });
-    t.context.storageService_units.push({
-        id: "6d6126ad-7354-48ee-87ba-bdaa77320fd1",
-        name: "%"
-    });
+    t.plan(2);
+    const capability = new Capability();
+    capability.id = "2a9fea2c-1227-42d7-8285-ef3ee8170ba8";
+    capability.name = "humidity";
+    capability.unitId = "6d6126ad-7354-48ee-87ba-bdaa77320fd1";
+    t.context.storageService._capabilities.push(capability);
+    const unit = new Unit();
+    unit.id = "6d6126ad-7354-48ee-87ba-bdaa77320fd1";
+    unit.name = "%";
+    t.context.storageService._units.push(unit);
     const testServer = superTest(t.context.app._server);
     const response: superTest.Response = await testServer.get(
         "/v1/capabilities/humidity"
     );
     t.is(response.status, 200);
-    const body = response.body;
-    t.deepEqual(body, {
-        id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
-        name: "humidity",
-        unit: "%"
+    t.deepEqual(response.body, {
+        data: {
+            id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
+            name: "humidity",
+            unit: "%"
+        }
     });
 });
 
@@ -111,9 +114,11 @@ test("get capability by id", async (t) => {
     t.is(response.status, 200);
     const body = response.body;
     t.deepEqual(body, {
-        id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
-        name: "humidity",
-        unit: "%"
+        data: {
+            id: "2a9fea2c-1227-42d7-8285-ef3ee8170ba8",
+            name: "humidity",
+            unit: "%"
+        }
     });
 });
 

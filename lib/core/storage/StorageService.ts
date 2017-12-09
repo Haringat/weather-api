@@ -37,8 +37,8 @@ export default class StorageService {
     }
 
     private _capabilities: Array<RawCapability> = [];
-    private _forecastData: Array<RawWeatherDataPoint<number|string>> = [];
-    private _historyData: Array<RawWeatherDataPoint<number|string>> = [];
+    private _forecastData: Array<RawWeatherDataPoint> = [];
+    private _historyData: Array<RawWeatherDataPoint> = [];
     private _stationCapabilities: Array<StationCapability> = [];
     private _stations: Array<RawStation> = [];
     private _units: Array<RawUnit> = [];
@@ -79,7 +79,7 @@ export default class StorageService {
         });
     }
 
-    public async addHistoryDataPoint(dataPoint: RawWeatherDataPoint<number> | RawWeatherDataPoint<string>) {
+    public async addHistoryDataPoint(dataPoint: RawWeatherDataPoint) {
         this._historyData.push(dataPoint);
     }
 
@@ -111,7 +111,7 @@ export default class StorageService {
         }
     }
 
-    public async addForecastDataPoint(dataPoint: RawWeatherDataPoint<number> | RawWeatherDataPoint<string>) {
+    public async addForecastDataPoint(dataPoint: RawWeatherDataPoint) {
         this._forecastData.push(dataPoint);
     }
 
@@ -168,7 +168,7 @@ export default class StorageService {
 
     public async getUnit(unitId: string) {
         const foundUnit = this._units.find((unit) => unit.id === unitId);
-        if (foundUnit !== null) {
+        if (foundUnit !== undefined) {
             return foundUnit;
         } else {
             StorageService.throwModelNotFoundError(`No unit with id "${unitId}"`);
@@ -191,6 +191,34 @@ export default class StorageService {
             const e = new Error(`no capability with id "${capabilityId}"`);
             e.name = "ModelNotFoundError";
             throw e;
+        }
+    }
+
+    public async deleteStationCapability(stationId: string, capabilityId: string) {
+        const index = this._stationCapabilities.findIndex(
+            (stationCapability) =>
+                stationCapability.stationId === stationId &&
+                stationCapability.capabilityId === capabilityId
+        );
+        if (index !== -1) {
+            this._stationCapabilities.splice(index, 1);
+        } else {
+            StorageService.throwModelNotFoundError(
+                `No station capability with stationId "${stationId}" and capabilityId "${capabilityId}"`
+            );
+        }
+    }
+
+    public async deleteStation(stationId: string) {
+        const index = this._stations.findIndex(
+            (station) => station.id === stationId
+        );
+        if (index !== -1) {
+            this._stations.splice(index, 1);
+        } else {
+            StorageService.throwModelNotFoundError(
+                `No station station with id "${stationId}"`
+            );
         }
     }
 }

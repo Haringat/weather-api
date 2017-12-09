@@ -16,33 +16,9 @@ import Controller, {
     getHttpMethodName,
     getPath
 } from "./Controller";
+import serializeJSON from "./serializers/json";
+import serializeXML from "./serializers/xml";
 import LoggerService from "./services/LoggerService";
-
-function toSnakeCase(camelCaseString: string) {
-    return camelCaseString.replace(/[A-Z]/g, (upperCaseLetter) => `-${upperCaseLetter.toLowerCase()}`);
-}
-
-function serializeObjectToXMLNode(object: object, name: string) {
-
-}
-
-function serializeXML(object: object, isRoot = true, indent = 0) {
-    let xml = ``;
-    if (isRoot) {
-        xml += `<?xml version="1.0" standalone="yes"?>
-<data>
-${serializeXML(object, false, indent + 4)}
-</data>`;
-    } else {
-        if (object instanceof Array) {
-
-        } else {
-            xml += Object.entries(object).map(([name, value]) => {
-
-            })
-        }
-    }
-}
 
 const {
     createServer
@@ -119,6 +95,7 @@ export default class Application {
 
     }
 
+    // TODO: split the controller setup into several methods
     private async setupControllers() {
         await this._controllers.forEachAsync(async (controller) => {
             const controllerName = Object.getPrototypeOf(controller).constructor.name;
@@ -145,39 +122,100 @@ export default class Application {
                 this._logger.info(`registering route: ${httpMethod} on ${path}`);
                 this._api[httpMethod](path, (request: express.Request, response: express.Response) => {
                     if (controller[method]) {
-                        controller[method](request).then((data) => {
+                        controller[method](request, response).then((data) => {
                             if (!response.finished) {
                                 if (data !== undefined) {
                                     if (request.headers.accept === undefined) {
-                                        response.status(200).send(data).end();
+                                        const body = serializeJSON(data);
+                                        response.setHeader("Content-Type", "Application/JSON");
+                                        response.status(200).send(body).end();
                                     } else {
                                         switch (request.headers.accept.toLowerCase()) {
                                             case "application/json":
                                             case "text/json":
-                                                response.status(200).send(data).end();
+                                            case "*/json":
+                                            case "*/*":
+                                                response.setHeader("Content-Type", "Application/JSON");
+                                                response.status(200).send(serializeJSON(data)).end();
                                                 break;
                                             case "application/xml":
                                             case "text/xml":
+                                            case "*/xml":
+                                                response.setHeader("Content-Type", "Application/XML");
                                                 response.status(200).send(serializeXML(data)).end();
                                                 break;
                                             default:
+                                                // not acceptable
                                                 response.status(406).end();
                                         }
                                     }
                                 } else {
-                                    response.end();
+                                    // no content
+                                    response.status(204).end();
                                 }
                             }
                         }, (e) => {
-                            response.status(500).end();
-                            this._logger.error(`Route "${controllerName}.${method}" failed with error.`);
-                            this._logger.error(e.stack);
+                            if (typeof e === "number") {
+                                e = {
+                                    status: e
+                                };
+                            }
+                            if (typeof e === "object") {
+                                if (e instanceof Error) {
+                                    response.status(500).end();
+                                    this._logger.error(`Route "${controllerName}.${method}" failed with error.`);
+                                    this._logger.error(e.stack);
+                                } else if (e.hasOwnProperty("status")) {
+                                    let body;
+                                    if (e.hasOwnProperty("body")) {
+                                        switch (request.headers.accept.toLowerCase()) {
+                                            case "application/json":
+                                            case "text/json":
+                                            case "*/json":
+                                            case "*/*":
+                                                response.setHeader("Content-Type", "Application/JSON");
+                                                body = serializeJSON(e.body);
+                                                break;
+                                            case "application/xml":
+                                            case "text/xml":
+                                            case "*/xml":
+                                                response.setHeader("Content-Type", "Application/XML");
+                                                body = serializeXML(e.body);
+                                                break;
+                                            default:
+                                                // not acceptable
+                                                response.status(406).end();
+                                        }
+                                    }
+                                    if (!response.finished) {
+                                        response.status(e.status);
+                                        if (e.hasOwnProperty("body")) {
+                                            response.send(body);
+                                        }
+                                        response.end();
+                                    }
+                                }
+                                response.status(e).end();
+                            } else {
+                                this._logger.error(`cannot handle "something" thrown by route.`);
+                                this._logger.error(e);
+                                response.status(500).end();
+                            }
                         });
                     } else {
+                        // not implemented
                         response.status(501).end();
-                        this._logger.warning(`controller "${controllerName}" does not support method ${method}`);
+                        this._logger.warning(`controller "${controllerName}" does not implement method ${method}`);
                     }
                 });
+            });
+            this._api.all(controller.path, (request, response) => {
+                // method not allowed
+                response.status(405).end();
+            });
+            this._api.all(controller.path + "/:fooId", (request, response) => {
+                // method not allowed
+                response.status(405).end();
             });
         });
     }

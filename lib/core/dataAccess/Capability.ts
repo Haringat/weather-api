@@ -35,6 +35,7 @@ export default class Capability {
         this._name = this._raw.name;
         const rawUnit = await storageService.getUnit(this._raw.unitId);
         this._unit = new Unit(rawUnit);
+        await this._unit.resolve(storageService);
     }
 
     public toXML() {
@@ -46,7 +47,7 @@ export default class Capability {
             id: this.id,
             name: this.name,
             unit: this.unit
-        }
+        };
     }
 
 }

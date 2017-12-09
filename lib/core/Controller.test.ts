@@ -172,7 +172,9 @@ test("supports replace", async (t) => {
     await testServer.put(
         "/v1/replace/foo"
     ).set("Content-Type", "Application/JSON").type("application/json").send({
-        foo: "bar"
+        data: {
+            foo: "bar"
+        }
     }).expect(200);
 });
 
@@ -260,7 +262,9 @@ test("supports modify", async (t) => {
     await testServer.patch(
         "/v1/modify/foo"
     ).send({
-        foo: "bar"
+        data: {
+            foo: "bar"
+        }
     }).expect(200);
 });
 
@@ -303,7 +307,9 @@ test("supports add", async (t) => {
     await testServer.post(
         "/v1/add"
     ).send({
-        foo: "bar"
+        data: {
+            foo: "bar"
+        }
     }).expect(200);
 });
 
@@ -480,6 +486,62 @@ test("sends 500 if a route fails", async (t) => {
     await testServer.delete(
         "/v1/inProgress/foo"
     ).expect(500);
+});
+
+test("sends 405 when method is not supported", async (t) => {
+    t.plan(2);
+
+    /* tslint:disable-next-line:max-classes-per-file */
+    class EmptyController extends Controller {
+
+        public supportedHttpMethods: Array<methodName> = [];
+        public path: string = "/empty";
+
+    }
+    const app: Application = t.context.app;
+    app.addController(new EmptyController());
+
+    await app.setup();
+    await app.bootstrap();
+
+    const testServer = supertest(Reflect.get(app, "_server"));
+
+    await testServer.options(
+        "/v1/empty"
+    ).expect((res: supertest.Response) => {
+        t.is(res.get("Access-Control-Allow-Methods"), "");
+    });
+
+    await testServer.options(
+        "/v1/empty/foo"
+    ).expect((res: supertest.Response) => {
+        t.is(res.get("Access-Control-Allow-Methods"), "");
+    });
+
+    await testServer.post(
+        "/v1/empty"
+    ).expect(405);
+
+    await testServer.get(
+        "/v1/empty"
+    ).expect(405);
+
+    await testServer.get(
+        "/v1/empty/foo"
+    ).expect(405);
+
+    await testServer.patch(
+        "/v1/empty/foo"
+    ).expect(405);
+
+    await testServer.put(
+        "/v1/empty/foo"
+    ).expect(405);
+
+    await testServer.delete(
+        "/v1/empty/foo"
+    ).expect(405);
+
 });
 
 test.afterEach(async (t) => {

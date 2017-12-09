@@ -1,9 +1,7 @@
 import * as util from "util";
 import * as uuid from "uuid";
 import Capability from "../dataAccess/Capability";
-import {
-    IUnit
-} from "../dataAccess/Unit";
+import Unit from "../dataAccess/Unit";
 import RawCapability from "../storage/model/Capability";
 import StorageService from "../storage/StorageService";
 import UnitService from "./UnitService";
@@ -61,9 +59,22 @@ export default class CapabilityService implements ICapabilityService {
         }
         if (isNullOrUndefined(name) ||
             isNullOrUndefined(unit)) {
-            const e = new Error("tried to create station from incomplete station data.");
+            const e = new Error("tried to create capability from incomplete capability data.");
             e.name = "IncompleteModelError";
             throw e;
+        }
+        if (typeof unit === "string") {
+            unit = {
+                name: unit
+            };
+        }
+        const unitExists = await this._unitService.unitExists(unit.name);
+        let newUnit;
+        if (!unitExists) {
+            newUnit = await this._unitService.create(unit);
+            await this._unitService.addUnit(newUnit);
+        } else {
+            newUnit = await this._unitService.getByName(unit.name);
         }
         const capability: Capability = Object.create(Capability.prototype, {
             _id: {
@@ -77,18 +88,14 @@ export default class CapabilityService implements ICapabilityService {
                 enumerable: true,
                 writable: true,
                 configurable: true
+            },
+            _unit: {
+                value: newUnit,
+                enumerable: true,
+                writable: true,
+                configurable: true
             }
         });
-        if (typeof unit === "string") {
-            unit = {
-                name: unit
-            };
-        }
-        const unitExists = await this._unitService.unitExists(unit.name);
-        if (!unitExists) {
-            const newUnit = await this._unitService.create(unit);
-            await this._unitService.addUnit(newUnit);
-        }
         return capability;
     }
 
@@ -104,7 +111,9 @@ export default class CapabilityService implements ICapabilityService {
         const capabilities = await this.getAll();
         const foundCapability = capabilities.find((capability) => capability.id === id);
         if (foundCapability !== null) {
-            return foundCapability;
+            const capability = new Capability(foundCapability);
+            await capability.resolve(this._storageService);
+            return capability;
         } else {
             const e = new Error(`No capability with id "${id}"`);
             e.name = "ModelNotFoundError";
@@ -116,11 +125,21 @@ export default class CapabilityService implements ICapabilityService {
         const capabilities = await this.getAll();
         const foundCapability = capabilities.find((capability) => capability.name === name);
         if (foundCapability !== null) {
-            return foundCapability;
+            const capability = new Capability(foundCapability);
+            await capability.resolve(this._storageService);
+            return capability;
         } else {
             const e = new Error(`No capability with name "${name}"`);
             e.name = "ModelNotFoundError";
             throw e;
+        }
+    }
+
+    public getOne(idOrName: string) {
+        if (/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(idOrName)) {
+            return this.getById(idOrName);
+        } else {
+            return this.getByName(idOrName);
         }
     }
 }

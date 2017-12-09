@@ -1,16 +1,14 @@
 import {
     Request, Response
 } from "express";
-import {
-    Console2
-} from "scribe-js/lib/console2";
 import Controller, {
     methodName
 } from "../core/Controller";
+import IdStub from "../core/dataAccess/IdStub";
 import LoggerService from "../core/services/LoggerService";
 import StationService from "../core/services/StationService";
 
-export default class StationsController extends Controller {
+export default class StationController extends Controller {
 
     public path = "/stations";
     public supportedHttpMethods: Array<methodName> = ["getSingle", "getAll", "add", "modify", "remove"];
@@ -23,26 +21,42 @@ export default class StationsController extends Controller {
     }
 
     public async add(request: Request, response: Response) {
-        try {
-            await this._stationsService.create(request.body);
-        } catch (e) {
-            if (e.name === "IncompleteModelError") {
-                response.status(400).send("Incomplete model").end();
-            } else {
-                throw e;
-            }
+        const body = request.body;
+        if (/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(body.name)) {
+            this._logger.error("cannot use uuid as name for station.");
+            throw {
+                status: 400
+            };
         }
+        if (/\d{1,3}(?:\.\d{1,3})?° ?[NS] ?\d{1,3}(?:\.\d{1,3})?° ?[OW]/.test(body.name)) {
+            this._logger.error("cannot use coordinates station name.");
+            throw {
+                status: 400
+            };
+        }
+        const station = await this._stationsService.create(request.body);
+        await this._stationsService.add(station);
+        throw {
+            status: 201,
+            body: new IdStub("station", station.id)
+        };
     }
 
     public async getSingle(request: Request, response: Response) {
         const stationId = request.params.id;
-        const station = this._stationsService.getOne(stationId);
-        response.status(200).send(station).end();
+        return this._stationsService.getOne(stationId);
     }
 
     public async getAll(request: Request, response: Response) {
-        const stations = this._stationsService.getAll();
-        response.status(200).send(stations).end();
+        const stations = await this._stationsService.getAll();
+        return stations.mapAsync(async (station) => {
+            return new IdStub("station", station.id, station.name);
+        });
+    }
+
+    public async remove(request: Request, response: Response) {
+        await this._stationsService.delete(request.params.stationId);
+        response.status(200).end();
     }
 
 }

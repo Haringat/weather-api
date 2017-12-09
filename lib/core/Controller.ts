@@ -55,13 +55,14 @@ export function getPath(basePath: string, modelName: string, method: methodName)
 }
 
 export interface IController {
-    getSingle?(request: Request, response: Response): Promise<void>;
-    getAll?(request: Request, response: Response): Promise<void>;
-    add?(request: Request, response: Response): Promise<void>;
-    replace?(request: Request, response: Response): Promise<void>;
-    modify?(request: Request, response: Response): Promise<void>;
-    remove?(request: Request, response: Response): Promise<void>;
-    options?(request: Request, response: Response): Promise<void>;
+    getSingle?(request: Request, response?: Response): Promise<any>;
+    getAll?(request: Request, response?: Response): Promise<any>;
+    add?(request: Request, response?: Response): Promise<any>;
+    replace?(request: Request, response?: Response): Promise<any>;
+    modify?(request: Request, response?: Response): Promise<any>;
+    remove?(request: Request, response?: Response): Promise<any>;
+    options?(request: Request, response?: Response): Promise<any>;
+    head?(request: Request, response?: Response): Promise<any>;
 }
 
 export default abstract class Controller implements IController {
@@ -70,6 +71,7 @@ export default abstract class Controller implements IController {
     public path: string;
 
     public async options(request: Request, response: Response) {
+        response.status(200);
         if (request.url.slice(1).split("/").length % 2 !== 0) {
             // odd number of path segments -> we are on an action endpoint
             response.setHeader(

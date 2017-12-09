@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as util from "util";
 import CapabilityController from "./controllers/CapabilityController";
+import StationCapabilityController from "./controllers/StationCapabilityController";
 import StationsController from "./controllers/StationsController";
 import Application from "./core/app";
 import parseConfigFile from "./core/configuration/Configuration";
@@ -34,6 +35,7 @@ export default async function() {
     const unitService = new UnitService(storageService);
     const capabilityService = new CapabilityService(storageService, unitService);
     const stationsService = new StationService(storageService, capabilityService);
+    app.addController(new StationCapabilityController(loggerService, stationsService));
     app.addController(new StationsController(loggerService, stationsService));
     app.addController(new CapabilityController(loggerService, capabilityService));
 

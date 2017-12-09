@@ -9,6 +9,7 @@ import CapabilityService from "../core/services/CapabilityService";
 import LoggerService from "../core/services/LoggerService";
 import StationService from "../core/services/StationService";
 import UnitService from "../core/services/UnitService";
+import Station from "../core/storage/model/Station";
 import StorageService from "../core/storage/StorageService";
 import StationsController from "./StationsController";
 
@@ -38,35 +39,44 @@ test.beforeEach(async (t) => {
     t.context.app = app;
 });
 
-test.skip("adds a new station", async (t) => {
-    t.plan(3);
+test("adds a new station", async (t) => {
+    t.plan(1);
     await superTest(t.context.app._server).post(
-        "/v1/supplier/stations/"
-    ).expect(
-        200
-    ).write(JSON.stringify({
-        capabilities: [{
-            unit: "%",
-            name: "humidity"
-        }],
-        latitude: 10,
-        longitude: 11,
-        altitude: 12
-    }));
-    t.is(
-        Object.getPrototypeOf(t.context.storageService._stations),
-        Array.prototype,
-        "storageService.stations is no Array anymore."
+        "/v1/stations/"
+    ).set("Accept", "Application/JSON").send({
+        data: {
+            capabilities: [{
+                unit: "%",
+                name: "humidity"
+            }],
+            latitude: 10,
+            longitude: 11,
+            altitude: 12,
+            name: "FooStation"
+        }
+    }).expect(
+        201
     );
     t.is(
-        Object.getPrototypeOf(t.context.storageService._units),
-        Array.prototype,
-        "storageService.units is no Array anymore."
+        t.context.storageService._stations.length, 1
     );
+});
+
+test("remove a station", async (t) => {
+    t.plan(1);
+    const storageService = t.context.storageService;
+    const station = new Station();
+    station.id = "da830d0c-692d-4901-9b6d-f71ccf3257c8";
+    station.name = "foo";
+    station.latitude = 0;
+    station.longitude = 0;
+    station.altitude = 0;
+    storageService._stations.push(station);
+    await superTest(t.context.app._server).delete(
+        "/v1/stations/da830d0c-692d-4901-9b6d-f71ccf3257c8"
+    ).expect(200);
     t.is(
-        Object.getPrototypeOf(t.context.storageService._capabilities),
-        Array.prototype,
-        "storageService.capabilities is no Array anymore."
+        t.context.storageService._stations.length, 0
     );
 });
 

@@ -49,7 +49,7 @@ export function jsonParser() {
             typeof request.headers["content-type"] === "string" &&
             (request.headers["content-type"] as string).toLowerCase() === "application/json"
         ) {
-            request.body = JSON.parse(request.body.toString());
+            request.body = JSON.parse(request.body.toString()).data;
         }
         next(null);
     };
@@ -64,7 +64,7 @@ export function xmlParser() {
                 (request.headers["content-type"] as string).toLowerCase() === "application/xml"
             )
         ) {
-            request.body = parseXMLNode(parseXML(request.body.toString()).root);
+            request.body = parseXMLNode(parseXML(request.body.toString()).root).data;
         }
         next(null);
     };
