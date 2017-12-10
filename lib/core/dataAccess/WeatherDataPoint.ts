@@ -59,13 +59,15 @@ export default class WeatherDataPoint {
             value: this.value,
             capabilityName: this.capability.name,
             date: this.date.toISOString(),
-            dateOfMeasure: this.dateOfMeasure.toISOString()
+            dateOfMeasure: this.dateOfMeasure.toISOString(),
+            unit: this.capability.unit
         };
     }
 
     public toXML() {
-        return `<data-point value="${this.value}" capability-name="${this.capability.name}"`
-            + ` date="${this.date.toISOString()}" date-of-measure="${this.dateOfMeasure.toISOString()}"/>`;
+        return `<data-point value="${this.value}" unit="${this.capability.unit.name}" ` +
+            `capability-name="${this.capability.name}" date="${this.date.toISOString()}" ` +
+            `date-of-measure="${this.dateOfMeasure.toISOString()}"/>`;
     }
 
 }

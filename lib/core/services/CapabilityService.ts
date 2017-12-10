@@ -110,36 +110,38 @@ export default class CapabilityService implements ICapabilityService {
     public async getById(id: string) {
         const capabilities = await this.getAll();
         const foundCapability = capabilities.find((capability) => capability.id === id);
-        if (foundCapability !== null) {
+        if (foundCapability !== undefined) {
             const capability = new Capability(foundCapability);
             await capability.resolve(this._storageService);
             return capability;
         } else {
-            const e = new Error(`No capability with id "${id}"`);
-            e.name = "ModelNotFoundError";
-            throw e;
+            throw {
+                status: 204,
+                body: {}
+            };
         }
     }
 
     public async getByName(name: string) {
         const capabilities = await this.getAll();
         const foundCapability = capabilities.find((capability) => capability.name === name);
-        if (foundCapability !== null) {
+        if (foundCapability !== undefined) {
             const capability = new Capability(foundCapability);
             await capability.resolve(this._storageService);
             return capability;
         } else {
-            const e = new Error(`No capability with name "${name}"`);
-            e.name = "ModelNotFoundError";
-            throw e;
+            throw {
+                status: 204,
+                body: {}
+            };
         }
     }
 
-    public getOne(idOrName: string) {
+    public async getOne(idOrName: string) {
         if (/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(idOrName)) {
-            return this.getById(idOrName);
+            return await this.getById(idOrName);
         } else {
-            return this.getByName(idOrName);
+            return await this.getByName(idOrName);
         }
     }
 }

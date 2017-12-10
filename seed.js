@@ -1,9 +1,9 @@
-import "async-tools";
-import http from "http";
-import url from "url";
-import stream from "stream";
-import stationsSeed from "./seed/stations";
-import capabilitiesSeed from "./seed/capabilities";
+require("async-tools");
+const http = require("http");
+const url = require("url");
+const stream = require("stream");
+const stationsSeed = require("./seed/stations_16");
+const capabilitiesSeed = require("./seed/capabilities");
 
 const {
     Writable
@@ -16,7 +16,7 @@ const {
 } = capabilitiesSeed;
 
 const {
-    Url
+    parse
 } = url;
 const {
     argv,
@@ -76,7 +76,7 @@ function requestAsync(obj, body) {
             response.pipe(new BufferingWritable(resolve)).on("error", reject);
         });
         if (body) {
-            req.write(JSON.stringify(body));
+            req.write(body);
         }
         req.end()
     })
@@ -86,7 +86,7 @@ const httpAgent = new Agent({
     maxSockets: 10
 });
 
-const serverUrl = argv[1];
+const serverUrl = parse(argv[2]);
 
 if (!serverUrl) {
     console.error(`no api url given.`);
@@ -94,57 +94,71 @@ if (!serverUrl) {
 }
 
 function addStation(station) {
-    requestAsync({
-        ...new Url(serverUrl),
+    const payload = Buffer.from(JSON.stringify({
+        data: station
+    }));
+    return requestAsync({
+        ...serverUrl,
         path: "/v1/stations",
+        pathname: "/v1/stations",
         method: "POST",
         agent: httpAgent,
         headers: {
             "Accept": "Application/JSON",
-            "Content-Type": "Application/JSON"
+            "Content-Type": "Application/JSON",
+            "Content-Length": payload.length
         }
-    }, {
-        data: station
-    });
+    }, payload);
 }
 function addCapability(capability) {
-    requestAsync({
-        ...new Url(serverUrl),
+    const payload = Buffer.from(JSON.stringify({
+        data: capability
+    }));
+    return requestAsync({
+        ...serverUrl,
+        pathname: "/v1/capabilities",
         path: "/v1/capabilities",
         method: "POST",
         agent: httpAgent,
         headers: {
             "Accept": "Application/JSON",
-            "Content-Type": "Application/JSON"
+            "Content-Type": "Application/JSON",
+            "Content-Length": payload.length
         }
-    }, {
-        data: capability
-    });
+    }, payload);
 }
 function linkCapability(stationId, capabilityId) {
-    return requestAsync({
-        ...new Url(serverUrl),
-        path: `/stations/${stationId}/capabilities`,
-        method: "POST",
-        agent: httpAgent
-    }, {
+    const payload = Buffer.from(JSON.stringify({
         data: {
             capabilityId
         }
-    });
+    }));
+    return requestAsync({
+        ...serverUrl,
+        pathname: `/stations/${stationId}/capabilities`,
+        path: `/stations/${stationId}/capabilities`,
+        method: "POST",
+        agent: httpAgent,
+        headers: {
+            "Accept": "Application/JSON",
+            "Content-Type": "Application/JSON",
+            "Content-Length": payload.length
+        }
+    }, payload);
 }
 
 (async () => {
 
     const capabilityStubs = await capabilities.mapAsync(async (capability) => {
-        return await addCapability(capability);
+        const responseBody = await addCapability(capability);
+        return JSON.parse(responseBody.toString());
     });
     await stations.forEachAsync(async (station) => {
-        const stationStub = await addStation(station);
+        const responseBody = await addStation(station);
+        const stationStub = JSON.parse(responseBody.toString());
         await capabilityStubs.forEachAsync(async (capabilityStub) => {
             await linkCapability(stationStub.data.id, capabilityStub.data.id);
         });
-        await linkCapability(st)
     });
 
 })().catch((e) => {

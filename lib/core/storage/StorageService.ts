@@ -221,4 +221,10 @@ export default class StorageService {
             );
         }
     }
+
+    public async getHistoryDataByStation(stationId: string) {
+        return this._historyData.filter(
+            (forecastDataPoint) => forecastDataPoint.stationId === stationId
+        );
+    }
 }

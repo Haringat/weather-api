@@ -11,7 +11,7 @@ import StationService from "../core/services/StationService";
 import UnitService from "../core/services/UnitService";
 import Station from "../core/storage/model/Station";
 import StorageService from "../core/storage/StorageService";
-import StationsController from "./StationsController";
+import StationsController from "./StationController";
 
 test.beforeEach(async (t) => {
     const config = parseConfigFile(Buffer.from(JSON.stringify({

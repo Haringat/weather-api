@@ -1,157 +1,212 @@
-[{
-    "name": "dry bulb temperature at 2 meter above ground",
-    "unit": "°C"
-}, {
-    "name": "dew point temperature at 2 meter above ground",
-    "unit": "°C"
-}, {
-    "name": "maximum of temperature for previous day",
-    "unit": "°C"
-}, {
-    "name": "minimum of temperature for previous day",
-    "unit": "°C"
-}, {
-    "name": "daily mean of temperature previous day",
-    "unit": "°C"
-}, {
-    "name": "minimum temperature at 5 cm above ground last 12h",
-    "unit": "°C"
-}, {
-    "name": "mean wind direction during last 10 min. at 10 meters above ground",
-    "unit": "°"
-}, {
-    "name": "mean wind speed during last 10 min. at 10 meters above ground",
-    "unit": "m/s"
-}, {
-    "name": "maximum wind speed last hour",
-    "unit": "m/s"
-}, {
-    "name": "chance of maximum wind speed last 12 hours more than 45km/h",
-    "unit": "%"
-}, {
-    "name": "chance of maximum wind speed last 12 hours more than 75km/h",
-    "unit": "%"
-}, {
-    "name": "chance of maximum wind speed last 12 hours more than 100km/h",
-    "unit": "%"
-}, {
-    "name": "precipitation amount last hour",
-    "unit": "m"
-}, {
-    "name": "precipitation amount last 3 hours",
-    "unit": "m"
-}, {
-    "name": "precipitation amount last 6 hours",
-    "unit": "m"
-}, {
-    "name": "precipitation amount last 12 hours",
-    "unit": "m"
-}, {
-    "name": "precipitation amount last 24 hours",
-    "unit": "m"
-}, {
-    "name": "chance of rain past last 6 hours",
-    "unit": "%"
-}, {
-    "name": "chance of rain past last 12 hours",
-    "unit": "%"
-}, {
-    "name": "chance of rain past last 24 hours",
-    "unit": "%"
-}, {
-    "name": "potential evapotranspiration last day",
-    "unit": "kg/m²"
-}, {
-    "name": "present weather",
-    "unit": "string"
-}, {
-    "name": "past weather 1",
-    "unit": "string"
-}, {
-    "name": "horizontal visibility",
-    "unit": "m"
-}, {
-    "name": "cloud cover total",
-    "unit": "%"
-}, {
-    "name": "effective cloud cover",
-    "unit": "%"
-}, {
-    "name": "cloud cover of low level clouds",
-    "unit": "%"
-}, {
-    "name": "cloud cover of medium level clouds",
-    "unit": "%"
-}, {
-    "name": "cloud cover of high level clouds",
-    "unit": "%"
-}, {
-    "name": "pressure reduced to mean sea level",
-    "unit": "Pa"
-}, {
-    "name": "total time of sunshine during last hour",
-    "unit": "h"
-}, {
-    "name": "total time of sunshine past day",
-    "unit": "h"
-}, {
-    "name": "global radiation last hour",
-    "unit": "J/m²"
-}, {
-    "name": "depth of new snow",
-    "unit": "m"
-}, {
-    "name": "diffuse solar radiation last hour",
-    "unit": "W/m²"
-}, {
-    "name": "direct solar radiation last 24 hours",
-    "unit": "W/m²"
-}, {
-    "name": "direct solar radiation last hour",
-    "unit": "W/m²"
-}, {
-    "name": "evaporation/evapotranspiration last 24 hours",
-    "unit": "m"
-}, {
-    "name": "global radiation past 24 hours",
-    "unit": "W/m²"
-}, {
-    "name": "height of base of lowest cloud above station",
-    "unit": "m"
-}, {
-    "name": "maximum of 10 minutes mean of wind speed for previous day",
-    "unit": "m/s"
-}, {
-    "name": "maximum temperature last 12 hours 2 meters above ground",
-    "unit": "°C"
-}, {
-    "name": "maximum wind speed as 10 minutes mean during last hour",
-    "unit": "m/s"
-}, {
-    "name": "maximum wind speed during last 6 hours",
-    "unit": "m/s"
-}, {
-    "name": "maximum wind speed for previous day",
-    "unit": "m/s"
-}, {
-    "name": "minimum of temperature at 5 cm above ground for previous day",
-    "unit": "°C"
-}, {
-    "name": "minimum temperature last 12 hours 2 meters above ground",
-    "unit": "°C"
-}, {
-    "name": "past weather 2",
-    "unit": "string"
-}, {
-    "name": "relative humidity",
-    "unit": "%"
-}, {
-    "name": "sea/water temperature",
-    "unit": "°C"
-}, {
-    "name": "temperature at 5 cm above ground",
-    "unit": "°C"
-}, {
-    "name": "total snow depth",
-    "unit": "m"
-}]
+{
+    "capabilities": [
+        {
+            "name": "dry bulb temperature at 2 meter above ground",
+            "unit": "°C"
+        },
+        {
+            "name": "dew point temperature at 2 meter above ground",
+            "unit": "°C"
+        },
+        {
+            "name": "maximum of temperature for previous day",
+            "unit": "°C"
+        },
+        {
+            "name": "minimum of temperature for previous day",
+            "unit": "°C"
+        },
+        {
+            "name": "daily mean of temperature previous day",
+            "unit": "°C"
+        },
+        {
+            "name": "minimum temperature at 5 cm above ground last 12h",
+            "unit": "°C"
+        },
+        {
+            "name": "mean wind direction during last 10 min. at 10 meters above ground",
+            "unit": "°"
+        },
+        {
+            "name": "mean wind speed during last 10 min. at 10 meters above ground",
+            "unit": "m/s"
+        },
+        {
+            "name": "maximum wind speed last hour",
+            "unit": "m/s"
+        },
+        {
+            "name": "chance of maximum wind speed last 12 hours more than 45km/h",
+            "unit": "%"
+        },
+        {
+            "name": "chance of maximum wind speed last 12 hours more than 75km/h",
+            "unit": "%"
+        },
+        {
+            "name": "chance of maximum wind speed last 12 hours more than 100km/h",
+            "unit": "%"
+        },
+        {
+            "name": "precipitation amount last hour",
+            "unit": "m"
+        },
+        {
+            "name": "precipitation amount last 3 hours",
+            "unit": "m"
+        },
+        {
+            "name": "precipitation amount last 6 hours",
+            "unit": "m"
+        },
+        {
+            "name": "precipitation amount last 12 hours",
+            "unit": "m"
+        },
+        {
+            "name": "precipitation amount last 24 hours",
+            "unit": "m"
+        },
+        {
+            "name": "chance of rain past last 6 hours",
+            "unit": "%"
+        },
+        {
+            "name": "chance of rain past last 12 hours",
+            "unit": "%"
+        },
+        {
+            "name": "chance of rain past last 24 hours",
+            "unit": "%"
+        },
+        {
+            "name": "potential evapotranspiration last day",
+            "unit": "kg/m²"
+        },
+        {
+            "name": "present weather",
+            "unit": "string"
+        },
+        {
+            "name": "past weather 1",
+            "unit": "string"
+        },
+        {
+            "name": "horizontal visibility",
+            "unit": "m"
+        },
+        {
+            "name": "cloud cover total",
+            "unit": "%"
+        },
+        {
+            "name": "effective cloud cover",
+            "unit": "%"
+        },
+        {
+            "name": "cloud cover of low level clouds",
+            "unit": "%"
+        },
+        {
+            "name": "cloud cover of medium level clouds",
+            "unit": "%"
+        },
+        {
+            "name": "cloud cover of high level clouds",
+            "unit": "%"
+        },
+        {
+            "name": "pressure reduced to mean sea level",
+            "unit": "Pa"
+        },
+        {
+            "name": "total time of sunshine during last hour",
+            "unit": "s"
+        },
+        {
+            "name": "total time of sunshine past day",
+            "unit": "s"
+        },
+        {
+            "name": "global radiation last hour",
+            "unit": "J/m²"
+        },
+        {
+            "name": "depth of new snow",
+            "unit": "m"
+        },
+        {
+            "name": "diffuse solar radiation last hour",
+            "unit": "W/m²"
+        },
+        {
+            "name": "direct solar radiation last 24 hours",
+            "unit": "W/m²"
+        },
+        {
+            "name": "direct solar radiation last hour",
+            "unit": "W/m²"
+        },
+        {
+            "name": "evaporation/evapotranspiration last 24 hours",
+            "unit": "m"
+        },
+        {
+            "name": "global radiation past 24 hours",
+            "unit": "W/m²"
+        },
+        {
+            "name": "height of base of lowest cloud above station",
+            "unit": "m"
+        },
+        {
+            "name": "maximum of 10 minutes mean of wind speed for previous day",
+            "unit": "m/s"
+        },
+        {
+            "name": "maximum temperature last 12 hours 2 meters above ground",
+            "unit": "°C"
+        },
+        {
+            "name": "maximum wind speed as 10 minutes mean during last hour",
+            "unit": "m/s"
+        },
+        {
+            "name": "maximum wind speed during last 6 hours",
+            "unit": "m/s"
+        },
+        {
+            "name": "maximum wind speed for previous day",
+            "unit": "m/s"
+        },
+        {
+            "name": "minimum of temperature at 5 cm above ground for previous day",
+            "unit": "°C"
+        },
+        {
+            "name": "minimum temperature last 12 hours 2 meters above ground",
+            "unit": "°C"
+        },
+        {
+            "name": "past weather 2",
+            "unit": "string"
+        },
+        {
+            "name": "relative humidity",
+            "unit": "%"
+        },
+        {
+            "name": "sea/water temperature",
+            "unit": "°C"
+        },
+        {
+            "name": "temperature at 5 cm above ground",
+            "unit": "°C"
+        },
+        {
+            "name": "total snow depth",
+            "unit": "m"
+        }
+    ]
+}

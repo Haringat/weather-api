@@ -43,12 +43,14 @@ export default class StationService {
         if (isNullOrUndefined(id)) {
             id = uuid4();
         }
-        if (isNullOrUndefined(id) ||
-            isNullOrUndefined(name) ||
+        if (isNullOrUndefined(capabilities)) {
+            capabilities = [];
+        }
+        if (isNullOrUndefined(name) ||
             isNullOrUndefined(latitude) ||
             isNullOrUndefined(longitude) ||
-            isNullOrUndefined(altitude) ||
-            isNullOrUndefined(capabilities)) {
+            isNullOrUndefined(altitude)
+        ) {
             const e = new Error("tried to create station from incomplete station data.");
             e.name = "IncompleteModelError";
             throw e;

@@ -1,4 +1,4 @@
-export default abstract class WeatherDataPoint {
+export default class WeatherDataPoint {
     public id: string;
     public value: string | number;
     public stationId: string;

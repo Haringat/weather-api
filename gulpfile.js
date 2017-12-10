@@ -40,8 +40,8 @@ import typescript from "typescript";
 
 import path from "path";
 
-import package from "json!./package.json";
-import tsConfig from "json!./tsconfig.json";
+import package from "./package.json";
+import tsConfig from "./tsconfig.json";
 
 const {
     init as initSourceMaps,
