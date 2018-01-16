@@ -54,7 +54,7 @@ Array.prototype.toXML = function() {
         } else {
             return `<${toSnakeCase(typeof entry)}>${entry}</${toSnakeCase(typeof entry)}>`;
         }
-    }).join();
+    }).join("");
 };
 
 export default function serializeXML(root) {
